@@ -1,0 +1,619 @@
+Process 0 (that is, the initial process):
+{1}new ys0: bitstring;
+{2}let R0: bitstring = h1((IDs,ys0)) in
+{3}new N1: bitstring;
+{4}new L0: bitstring;
+{5}out(c, (xor(R0,h((WT,X))),h((IDsp,IDs,R0,WT)),Resyn));
+(
+    {6}let T1: bitstring = N1 in
+    {7}new As2: bitstring;
+    {8}event SLogin2(T1);
+    {9}let As: bitstring = As2 in
+    {10}out(c, (As,xor(T1,h((As,X))),h((IDs,T1,As,WT))));
+    {11}in(c, m2: bitstring);
+    {12}let As_1: bitstring = As2 in
+    {13}let v: bitstring = m2 in
+    {14}let v_1: bool = success?(1-proj-2-tuple(v)) in
+    {15}let Vsp: bitstring = (if v_1 then 2-proj-2-tuple(v) else caught-fail) in
+    {16}let Asp: bitstring = (if v_1 then 1-proj-2-tuple(v) else caught-fail) in
+    {17}let SK: bitstring = (if v_1 then h((As_1,Asp,WT)) else caught-fail) in
+    {18}let SSK: bitstring = (if v_1 then h((IDs,IDsp,SK)) else caught-fail) in
+    {19}let TCn: bitstring = (if v_1 then xor(T1,h((SK,Asp))) else caught-fail) in
+    {20}let v_2: bool = not(v_1) in
+    {21}let v_3: bitstring = (if v_2 then catch-fail(m2) else caught-fail) in
+    {22}let v_4: bool = (not-caught-fail(v_3) && ((Resyn =nf 3-proj-3-tuple(v_3)) && success?(1-proj-3-tuple(v_3)))) in
+    {23}let MV: bitstring = (if v_4 then 2-proj-3-tuple(v_3) else caught-fail) in
+    {24}let MTC: bitstring = (if v_4 then 1-proj-3-tuple(v_3) else caught-fail) in
+    {25}let TCn_1: bitstring = (if v_4 then catch-fail(unxor(MTC,h((WT,X)))) else caught-fail) in
+    {26}let v_5: bool = not-caught-fail(TCn_1) in
+    {27}let T2: bitstring = (if v_1 then (if (Vsp = h((WT,IDsp,TCn,Asp,SSK))) then TCn else T1) else (if v_4 then (if v_5 then (if (MV = h((IDsp,IDs,TCn_1,WT))) then TCn_1 else T1) else T1) else T1)) in
+    {28}new As3: bitstring;
+    {29}event SLogin3(T2);
+    {30}let As_2: bitstring = As3 in
+    {31}out(c, (As_2,xor(T2,h((As_2,X))),h((IDs,T2,As_2,WT))));
+    {32}in(c, m3: bitstring);
+    {33}let (MTC_1: bitstring,MV_1: bitstring,=Resyn) = m3 in
+    {34}let TCn_2: bitstring = unxor(MTC_1,h((WT,X))) in
+    {35}if (MV_1 = h((IDsp,IDs,TCn_2,WT))) then
+    {36}event SRecovered(TCn_2)
+) | (
+    {37}let TCa: bitstring = N1 in
+    {38}let La: bitstring = L0 in
+    {39}in(c, (As2_1: bitstring,ETC2: bitstring,V12: bitstring));
+    {40}new Asp2: bitstring;
+    {41}new ys2: bitstring;
+    {42}let Asp_1: bitstring = Asp2 in
+    {43}let ys: bitstring = ys2 in
+    {44}let D: bitstring = catch-fail(unxor(ETC2,h((As2_1,X)))) in
+    {45}let v_6: bool = not-caught-fail(D) in
+    {46}let v_7: bool = (if v_6 then catch-fail((D = TCa)) else caught-fail) in
+    {47}let v_8: bool = (if v_7 then catch-fail((V12 = h((IDs,TCa,As2_1,WT)))) else caught-fail) in
+    {48}let SK_1: bitstring = (if v_8 then h((As2_1,Asp_1,WT)) else caught-fail) in
+    {49}let SSK_1: bitstring = (if v_8 then h((IDs,IDsp,SK_1)) else caught-fail) in
+    {50}let TCn_3: bitstring = (if v_8 then xor(TCa,h((SK_1,Asp_1))) else caught-fail) in
+    {51}let v_9: bool = (if is-false(v_7) then catch-fail((D = R0)) else caught-fail) in
+    {52}let v_10: bool = (if v_9 then catch-fail((La = V12)) else caught-fail) in
+    {53}let R: bitstring = (if is-false(v_10) then h1((IDs,ys)) else caught-fail) in
+    {54}let (TCb: bitstring,Pb: bitstring,Lb: bitstring,o2: bitstring) = (if v_6 then (if undo-catch-fail(v_7) then (if undo-catch-fail(v_8) then (TCn_3,TCa,V12,(Asp_1,h((WT,IDsp,TCn_3,Asp_1,SSK_1)))) else (TCa,R0,La,nothing)) else (if undo-catch-fail(v_9) then (if undo-catch-fail(v_10) then (TCa,R0,La,nothing) else (R,R,V12,(xor(R,h((WT,X))),h((IDsp,IDs,R,WT)),Resyn))) else (TCa,R0,La,nothing))) else (TCa,R0,La,nothing)) in
+    {55}out(c, o2);
+    {56}in(c, (As3_1: bitstring,ETC3: bitstring,V13: bitstring));
+    {57}let D3: bitstring = unxor(ETC3,h((As3_1,X))) in
+    {58}if (D3 = TCb) then
+    (
+        {59}if (V13 = h((IDs,TCb,As3_1,WT))) then
+        {60}new Asp3: bitstring;
+        {61}let SK_2: bitstring = h((As3_1,Asp3,WT)) in
+        {62}let SSK_2: bitstring = h((IDs,IDsp,SK_2)) in
+        {63}let TCn_4: bitstring = xor(TCb,h((SK_2,Asp3))) in
+        {64}out(c, (Asp3,h((WT,IDsp,TCn_4,Asp3,SSK_2))))
+    )
+    else
+        {65}if (D3 = Pb) then
+        (
+            {66}if (Lb = V13) then
+                0
+            else
+                {67}new ys3: bitstring;
+                {68}let R_1: bitstring = h1((IDs,ys3)) in
+                {69}out(c, (xor(R_1,h((WT,X))),h((IDsp,IDs,R_1,WT)),Resyn))
+        )
+        else
+            {70}event SPReject(D3)
+)
+
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}new ys0: bitstring;
+{3}new N1: bitstring;
+{4}new L0: bitstring;
+{2}let R0: bitstring = h1((IDs,ys0)) in
+{5}out(c, (xor(R0,h((WT,X))),h((IDsp,IDs,R0,WT)),Resyn));
+(
+    {7}new As2: bitstring;
+    {6}let T1: bitstring = N1 in
+    {8}event SLogin2(T1);
+    {9}let As: bitstring = As2 in
+    {10}out(c, (As,xor(T1,h((As,X))),h((IDs,T1,As,WT))));
+    {11}in(c, m2: bitstring);
+    {13}let v: bitstring = m2 in
+    {14}let v_1: bool = success?(1-proj-2-tuple(v)) in
+    {15}let Vsp: bitstring = (if v_1 then 2-proj-2-tuple(v) else caught-fail) in
+    {16}let Asp: bitstring = (if v_1 then 1-proj-2-tuple(v) else caught-fail) in
+    {20}let v_2: bool = not(v_1) in
+    {21}let v_3: bitstring = (if v_2 then catch-fail(m2) else caught-fail) in
+    {22}let v_4: bool = (not-caught-fail(v_3) && ((Resyn =nf 3-proj-3-tuple(v_3)) && success?(1-proj-3-tuple(v_3)))) in
+    {23}let MV: bitstring = (if v_4 then 2-proj-3-tuple(v_3) else caught-fail) in
+    {24}let MTC: bitstring = (if v_4 then 1-proj-3-tuple(v_3) else caught-fail) in
+    {28}new As3: bitstring;
+    {25}let TCn_1: bitstring = (if v_4 then catch-fail(unxor(MTC,h((WT,X)))) else caught-fail) in
+    {26}let v_5: bool = not-caught-fail(TCn_1) in
+    {12}let As_1: bitstring = As2 in
+    {17}let SK: bitstring = (if v_1 then h((As_1,Asp,WT)) else caught-fail) in
+    {19}let TCn: bitstring = (if v_1 then xor(T1,h((SK,Asp))) else caught-fail) in
+    {18}let SSK: bitstring = (if v_1 then h((IDs,IDsp,SK)) else caught-fail) in
+    {27}let T2: bitstring = (if v_1 then (if (Vsp = h((WT,IDsp,TCn,Asp,SSK))) then TCn else T1) else (if v_4 then (if v_5 then (if (MV = h((IDsp,IDs,TCn_1,WT))) then TCn_1 else T1) else T1) else T1)) in
+    {29}event SLogin3(T2);
+    {30}let As_2: bitstring = As3 in
+    {31}out(c, (As_2,xor(T2,h((As_2,X))),h((IDs,T2,As_2,WT))));
+    {32}in(c, m3: bitstring);
+    {33}let (MTC_1: bitstring,MV_1: bitstring,=Resyn) = m3 in
+    {34}let TCn_2: bitstring = unxor(MTC_1,h((WT,X))) in
+    {35}if (MV_1 = h((IDsp,IDs,TCn_2,WT))) then
+    {36}event SRecovered(TCn_2)
+) | (
+    {39}in(c, (As2_1: bitstring,ETC2: bitstring,V12: bitstring));
+    {40}new Asp2: bitstring;
+    {41}new ys2: bitstring;
+    {44}let D: bitstring = catch-fail(unxor(ETC2,h((As2_1,X)))) in
+    {45}let v_6: bool = not-caught-fail(D) in
+    {37}let TCa: bitstring = N1 in
+    {46}let v_7: bool = (if v_6 then catch-fail((D = TCa)) else caught-fail) in
+    {51}let v_9: bool = (if is-false(v_7) then catch-fail((D = R0)) else caught-fail) in
+    {38}let La: bitstring = L0 in
+    {52}let v_10: bool = (if v_9 then catch-fail((La = V12)) else caught-fail) in
+    {43}let ys: bitstring = ys2 in
+    {53}let R: bitstring = (if is-false(v_10) then h1((IDs,ys)) else caught-fail) in
+    {47}let v_8: bool = (if v_7 then catch-fail((V12 = h((IDs,TCa,As2_1,WT)))) else caught-fail) in
+    {42}let Asp_1: bitstring = Asp2 in
+    {48}let SK_1: bitstring = (if v_8 then h((As2_1,Asp_1,WT)) else caught-fail) in
+    {50}let TCn_3: bitstring = (if v_8 then xor(TCa,h((SK_1,Asp_1))) else caught-fail) in
+    {49}let SSK_1: bitstring = (if v_8 then h((IDs,IDsp,SK_1)) else caught-fail) in
+    {54}let (TCb: bitstring,Pb: bitstring,Lb: bitstring,o2: bitstring) = (if v_6 then (if undo-catch-fail(v_7) then (if undo-catch-fail(v_8) then (TCn_3,TCa,V12,(Asp_1,h((WT,IDsp,TCn_3,Asp_1,SSK_1)))) else (TCa,R0,La,nothing)) else (if undo-catch-fail(v_9) then (if undo-catch-fail(v_10) then (TCa,R0,La,nothing) else (R,R,V12,(xor(R,h((WT,X))),h((IDsp,IDs,R,WT)),Resyn))) else (TCa,R0,La,nothing))) else (TCa,R0,La,nothing)) in
+    {55}out(c, o2);
+    {56}in(c, (As3_1: bitstring,ETC3: bitstring,V13: bitstring));
+    {57}let D3: bitstring = unxor(ETC3,h((As3_1,X))) in
+    {58}if (D3 = TCb) then
+    (
+        {59}if (V13 = h((IDs,TCb,As3_1,WT))) then
+        {60}new Asp3: bitstring;
+        {61}let SK_2: bitstring = h((As3_1,Asp3,WT)) in
+        {63}let TCn_4: bitstring = xor(TCb,h((SK_2,Asp3))) in
+        {62}let SSK_2: bitstring = h((IDs,IDsp,SK_2)) in
+        {64}out(c, (Asp3,h((WT,IDsp,TCn_4,Asp3,SSK_2))))
+    )
+    else
+        {65}if (D3 = Pb) then
+        (
+            {66}if (Lb = V13) then
+                0
+            else
+                {67}new ys3: bitstring;
+                {68}let R_1: bitstring = h1((IDs,ys3)) in
+                {69}out(c, (xor(R_1,h((WT,X))),h((IDsp,IDs,R_1,WT)),Resyn))
+        )
+        else
+            {70}event SPReject(D3)
+)
+
+-- Query not (event(SPReject(x)) && event(SLogin3(x)) && event(SLogin2(y)) && x ≠ y) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 168 rules (46 with conclusion selected). Queue: 207 rules.
+400 rules inserted. Base: 285 rules (50 with conclusion selected). Queue: 275 rules.
+600 rules inserted. Base: 384 rules (60 with conclusion selected). Queue: 264 rules.
+select attacker(xor(D_1,h((As2_2,X[]))))/-5000
+800 rules inserted. Base: 506 rules (79 with conclusion selected). Queue: 251 rules.
+1000 rules inserted. Base: 589 rules (99 with conclusion selected). Queue: 211 rules.
+1200 rules inserted. Base: 752 rules (146 with conclusion selected). Queue: 93 rules.
+Starting query not (event(SPReject(x)) && event(SLogin3(x)) && event(SLogin2(y)) && x ≠ y)
+goal reachable: attacker(V13_1) && b-event(@p_act(@occ56[],(As3_2,xor(h1((IDs[],ys0[])),h((As3_2,X[]))),V13_1))) && b-event(@p_act(@occ39[],(As2[],xor(N1[],h((As2[],X[]))),h((IDs[],N1[],As2[],WT[]))))) && b-event(@p_act(@occ11[],(xor(h1((IDs[],ys0[])),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[])),Resyn[]))) -> event(SPReject(h1((IDs[],ys0[])))) && event(SLogin3(h1((IDs[],ys0[])))) && event(SLogin2(N1[]))
+Abbreviations:
+As3_2 = As3[m2 = (xor(h1((IDs[],ys0[])),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[])),Resyn[])]
+
+Derivation:
+Abbreviations:
+As3_2 = As3[m2 = (xor(h1((IDs[],ys0[])),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[])),Resyn[])]
+Asp2_1 = Asp2[V12 = h((IDs[],N1[],As2[],WT[])),ETC2 = xor(N1[],h((As2[],X[]))),As2_1 = As2[]]
+
+1. Event SLogin2(N1[]) may be executed at {8}.
+event(SLogin2(N1[])).
+
+2. The attacker initially knows Resyn[].
+attacker(Resyn[]).
+
+3. The message (xor(h1((IDs[],ys0[])),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[])),Resyn[]) may be sent to the attacker at output {5}.
+attacker((xor(h1((IDs[],ys0[])),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[])),Resyn[])).
+
+4. By 3, the attacker may know (xor(h1((IDs[],ys0[])),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[])),Resyn[]).
+Using the function 2-proj-3-tuple the attacker may obtain h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[])).
+attacker(h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[]))).
+
+5. By 3, the attacker may know (xor(h1((IDs[],ys0[])),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[])),Resyn[]).
+Using the function 1-proj-3-tuple the attacker may obtain xor(h1((IDs[],ys0[])),h((WT[],X[]))).
+attacker(xor(h1((IDs[],ys0[])),h((WT[],X[])))).
+
+6. By 5, the attacker may know xor(h1((IDs[],ys0[])),h((WT[],X[]))).
+By 4, the attacker may know h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[])).
+By 2, the attacker may know Resyn[].
+Using the function 3-tuple the attacker may obtain (xor(h1((IDs[],ys0[])),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[])),Resyn[]).
+attacker((xor(h1((IDs[],ys0[])),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[])),Resyn[])).
+
+7. The event @p_act(@occ11[],(xor(h1((IDs[],ys0[])),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[])),Resyn[])) records how variables are instantiated at {11}.
+The message (xor(h1((IDs[],ys0[])),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[])),Resyn[]) that the attacker may have by 6 may be received at input {11}.
+So event SLogin3(h1((IDs[],ys0[]))) may be executed at {29}.
+event(SLogin3(h1((IDs[],ys0[])))).
+
+8. The message (As2[],xor(N1[],h((As2[],X[]))),h((IDs[],N1[],As2[],WT[]))) may be sent to the attacker at output {10}.
+attacker((As2[],xor(N1[],h((As2[],X[]))),h((IDs[],N1[],As2[],WT[])))).
+
+9. By 8, the attacker may know (As2[],xor(N1[],h((As2[],X[]))),h((IDs[],N1[],As2[],WT[]))).
+Using the function 3-proj-3-tuple the attacker may obtain h((IDs[],N1[],As2[],WT[])).
+attacker(h((IDs[],N1[],As2[],WT[]))).
+
+10. By 8, the attacker may know (As2[],xor(N1[],h((As2[],X[]))),h((IDs[],N1[],As2[],WT[]))).
+Using the function 2-proj-3-tuple the attacker may obtain xor(N1[],h((As2[],X[]))).
+attacker(xor(N1[],h((As2[],X[])))).
+
+11. By 8, the attacker may know (As2[],xor(N1[],h((As2[],X[]))),h((IDs[],N1[],As2[],WT[]))).
+Using the function 1-proj-3-tuple the attacker may obtain As2[].
+attacker(As2[]).
+
+12. By 11, the attacker may know As2[].
+By 10, the attacker may know xor(N1[],h((As2[],X[]))).
+By 9, the attacker may know h((IDs[],N1[],As2[],WT[])).
+Using the function 3-tuple the attacker may obtain (As2[],xor(N1[],h((As2[],X[]))),h((IDs[],N1[],As2[],WT[]))).
+attacker((As2[],xor(N1[],h((As2[],X[]))),h((IDs[],N1[],As2[],WT[])))).
+
+13. We assume as hypothesis that
+attacker(V13_1).
+
+14. The event @p_act(@occ11[],(xor(h1((IDs[],ys0[])),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[])),Resyn[])) records how variables are instantiated at {11}.
+The message (xor(h1((IDs[],ys0[])),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[])),Resyn[]) that the attacker may have by 6 may be received at input {11}.
+So the message (As3_2,xor(h1((IDs[],ys0[])),h((As3_2,X[]))),h((IDs[],h1((IDs[],ys0[])),As3_2,WT[]))) may be sent to the attacker at output {31}.
+attacker((As3_2,xor(h1((IDs[],ys0[])),h((As3_2,X[]))),h((IDs[],h1((IDs[],ys0[])),As3_2,WT[])))).
+
+15. By 14, the attacker may know (As3_2,xor(h1((IDs[],ys0[])),h((As3_2,X[]))),h((IDs[],h1((IDs[],ys0[])),As3_2,WT[]))).
+Using the function 2-proj-3-tuple the attacker may obtain xor(h1((IDs[],ys0[])),h((As3_2,X[]))).
+attacker(xor(h1((IDs[],ys0[])),h((As3_2,X[])))).
+
+16. By 14, the attacker may know (As3_2,xor(h1((IDs[],ys0[])),h((As3_2,X[]))),h((IDs[],h1((IDs[],ys0[])),As3_2,WT[]))).
+Using the function 1-proj-3-tuple the attacker may obtain As3_2.
+attacker(As3_2).
+
+17. By 16, the attacker may know As3_2.
+By 15, the attacker may know xor(h1((IDs[],ys0[])),h((As3_2,X[]))).
+By 13, the attacker may know V13_1.
+Using the function 3-tuple the attacker may obtain (As3_2,xor(h1((IDs[],ys0[])),h((As3_2,X[]))),V13_1).
+attacker((As3_2,xor(h1((IDs[],ys0[])),h((As3_2,X[]))),V13_1)).
+
+18. The event @p_act(@occ39[],(As2[],xor(N1[],h((As2[],X[]))),h((IDs[],N1[],As2[],WT[])))) records how variables are instantiated at {39}.
+The message (As2[],xor(N1[],h((As2[],X[]))),h((IDs[],N1[],As2[],WT[]))) that the attacker may have by 12 may be received at input {39}.
+The event @p_act(@occ56[],(As3_2,xor(h1((IDs[],ys0[])),h((As3_2,X[]))),V13_1)) records how variables are instantiated at {56}.
+The message (As3_2,xor(h1((IDs[],ys0[])),h((As3_2,X[]))),V13_1) that the attacker may have by 17 may be received at input {56}.
+We have h1((IDs[],ys0[])) ≠ N1[] && h1((IDs[],ys0[])) ≠ xor(N1[],h((h((As2[],Asp2_1,WT[])),Asp2_1))).
+So event SPReject(h1((IDs[],ys0[]))) may be executed at {70}.
+event(SPReject(h1((IDs[],ys0[])))).
+
+19. By 18, event(SPReject(h1((IDs[],ys0[])))).
+By 7, event(SLogin3(h1((IDs[],ys0[])))).
+By 1, event(SLogin2(N1[])).
+We have h1((IDs[],ys0[])) ≠ N1[].
+The goals are reached, combined in the following fact:
+event(SPReject(h1((IDs[],ys0[])))) && event(SLogin3(h1((IDs[],ys0[])))) && event(SLogin2(N1[])).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+new ys0: bitstring creating ys0_1 at {1}
+
+new N1: bitstring creating N1_1 at {3}
+
+new L0: bitstring creating L0_1 at {4}
+
+out(c, (~M,~M_1,~M_2)) with ~M = xor(h1((IDs,ys0_1)),h((WT,X))), ~M_1 = h((IDsp,IDs,h1((IDs,ys0_1)),WT)), ~M_2 = Resyn at {5}
+
+new As2: bitstring creating As2_2 at {7}
+
+event SLogin2(N1_1) at {8} (goal)
+
+out(c, (~M_3,~M_4,~M_5)) with ~M_3 = As2_2, ~M_4 = xor(N1_1,h((As2_2,X))), ~M_5 = h((IDs,N1_1,As2_2,WT)) at {10}
+
+in(c, (~M,~M_1,Resyn)) with ~M = xor(h1((IDs,ys0_1)),h((WT,X))), ~M_1 = h((IDsp,IDs,h1((IDs,ys0_1)),WT)) at {11}
+
+new As3: bitstring creating As3_3 at {28}
+
+event SLogin3(h1((IDs,ys0_1))) at {29} (goal)
+
+out(c, (~M_6,~M_7,~M_8)) with ~M_6 = As3_3, ~M_7 = xor(h1((IDs,ys0_1)),h((As3_3,X))), ~M_8 = h((IDs,h1((IDs,ys0_1)),As3_3,WT)) at {31}
+
+in(c, (~M_3,~M_4,~M_5)) with ~M_3 = As2_2, ~M_4 = xor(N1_1,h((As2_2,X))), ~M_5 = h((IDs,N1_1,As2_2,WT)) at {39}
+
+new Asp2: bitstring creating Asp2_2 at {40}
+
+new ys2: bitstring creating ys2_1 at {41}
+
+out(c, (~M_9,~M_10)) with ~M_9 = Asp2_2, ~M_10 = h((WT,IDsp,xor(N1_1,h((h((As2_2,Asp2_2,WT)),Asp2_2))),Asp2_2,h((IDs,IDsp,h((As2_2,Asp2_2,WT)))))) at {55}
+
+in(c, (~M_6,~M_7,a)) with ~M_6 = As3_3, ~M_7 = xor(h1((IDs,ys0_1)),h((As3_3,X))) at {56}
+
+event SPReject(h1((IDs,ys0_1))) at {70} (goal)
+
+The event SPReject(h1((IDs,ys0_1))) is executed at {70}.
+The event SLogin3(h1((IDs,ys0_1))) is executed at {29}.
+The event SLogin2(N1_1) is executed at {8}.
+A trace has been found.
+RESULT not (event(SPReject(x)) && event(SLogin3(x)) && event(SLogin2(y)) && x ≠ y) is false.
+-- Query not (event(SPReject(x)) && event(SLogin3(x))) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 167 rules (45 with conclusion selected). Queue: 207 rules.
+400 rules inserted. Base: 285 rules (49 with conclusion selected). Queue: 281 rules.
+600 rules inserted. Base: 383 rules (59 with conclusion selected). Queue: 264 rules.
+select attacker(xor(D_1,h((As2_2,X[]))))/-5000
+800 rules inserted. Base: 506 rules (78 with conclusion selected). Queue: 251 rules.
+1000 rules inserted. Base: 589 rules (98 with conclusion selected). Queue: 210 rules.
+1200 rules inserted. Base: 752 rules (146 with conclusion selected). Queue: 92 rules.
+Starting query not (event(SPReject(x)) && event(SLogin3(x)))
+goal reachable: attacker(V13_1) && b-event(@p_act(@occ56_1[],(As3_2,xor(h1((IDs[],ys0[])),h((As3_2,X[]))),V13_1))) && b-event(@p_act(@occ39_1[],(As2[],xor(N1[],h((As2[],X[]))),h((IDs[],N1[],As2[],WT[]))))) && b-event(@p_act(@occ11_1[],(xor(h1((IDs[],ys0[])),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[])),Resyn[]))) -> event(SPReject(h1((IDs[],ys0[])))) && event(SLogin3(h1((IDs[],ys0[]))))
+Abbreviations:
+As3_2 = As3[m2 = (xor(h1((IDs[],ys0[])),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[])),Resyn[])]
+
+Derivation:
+Abbreviations:
+As3_2 = As3[m2 = (xor(h1((IDs[],ys0[])),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[])),Resyn[])]
+Asp2_1 = Asp2[V12 = h((IDs[],N1[],As2[],WT[])),ETC2 = xor(N1[],h((As2[],X[]))),As2_1 = As2[]]
+
+1. The attacker initially knows Resyn[].
+attacker(Resyn[]).
+
+2. The message (xor(h1((IDs[],ys0[])),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[])),Resyn[]) may be sent to the attacker at output {5}.
+attacker((xor(h1((IDs[],ys0[])),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[])),Resyn[])).
+
+3. By 2, the attacker may know (xor(h1((IDs[],ys0[])),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[])),Resyn[]).
+Using the function 2-proj-3-tuple the attacker may obtain h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[])).
+attacker(h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[]))).
+
+4. By 2, the attacker may know (xor(h1((IDs[],ys0[])),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[])),Resyn[]).
+Using the function 1-proj-3-tuple the attacker may obtain xor(h1((IDs[],ys0[])),h((WT[],X[]))).
+attacker(xor(h1((IDs[],ys0[])),h((WT[],X[])))).
+
+5. By 4, the attacker may know xor(h1((IDs[],ys0[])),h((WT[],X[]))).
+By 3, the attacker may know h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[])).
+By 1, the attacker may know Resyn[].
+Using the function 3-tuple the attacker may obtain (xor(h1((IDs[],ys0[])),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[])),Resyn[]).
+attacker((xor(h1((IDs[],ys0[])),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[])),Resyn[])).
+
+6. The event @p_act(@occ11_1[],(xor(h1((IDs[],ys0[])),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[])),Resyn[])) records how variables are instantiated at {11}.
+The message (xor(h1((IDs[],ys0[])),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[])),Resyn[]) that the attacker may have by 5 may be received at input {11}.
+So event SLogin3(h1((IDs[],ys0[]))) may be executed at {29}.
+event(SLogin3(h1((IDs[],ys0[])))).
+
+7. The message (As2[],xor(N1[],h((As2[],X[]))),h((IDs[],N1[],As2[],WT[]))) may be sent to the attacker at output {10}.
+attacker((As2[],xor(N1[],h((As2[],X[]))),h((IDs[],N1[],As2[],WT[])))).
+
+8. By 7, the attacker may know (As2[],xor(N1[],h((As2[],X[]))),h((IDs[],N1[],As2[],WT[]))).
+Using the function 3-proj-3-tuple the attacker may obtain h((IDs[],N1[],As2[],WT[])).
+attacker(h((IDs[],N1[],As2[],WT[]))).
+
+9. By 7, the attacker may know (As2[],xor(N1[],h((As2[],X[]))),h((IDs[],N1[],As2[],WT[]))).
+Using the function 2-proj-3-tuple the attacker may obtain xor(N1[],h((As2[],X[]))).
+attacker(xor(N1[],h((As2[],X[])))).
+
+10. By 7, the attacker may know (As2[],xor(N1[],h((As2[],X[]))),h((IDs[],N1[],As2[],WT[]))).
+Using the function 1-proj-3-tuple the attacker may obtain As2[].
+attacker(As2[]).
+
+11. By 10, the attacker may know As2[].
+By 9, the attacker may know xor(N1[],h((As2[],X[]))).
+By 8, the attacker may know h((IDs[],N1[],As2[],WT[])).
+Using the function 3-tuple the attacker may obtain (As2[],xor(N1[],h((As2[],X[]))),h((IDs[],N1[],As2[],WT[]))).
+attacker((As2[],xor(N1[],h((As2[],X[]))),h((IDs[],N1[],As2[],WT[])))).
+
+12. We assume as hypothesis that
+attacker(V13_1).
+
+13. The event @p_act(@occ11_1[],(xor(h1((IDs[],ys0[])),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[])),Resyn[])) records how variables are instantiated at {11}.
+The message (xor(h1((IDs[],ys0[])),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys0[])),WT[])),Resyn[]) that the attacker may have by 5 may be received at input {11}.
+So the message (As3_2,xor(h1((IDs[],ys0[])),h((As3_2,X[]))),h((IDs[],h1((IDs[],ys0[])),As3_2,WT[]))) may be sent to the attacker at output {31}.
+attacker((As3_2,xor(h1((IDs[],ys0[])),h((As3_2,X[]))),h((IDs[],h1((IDs[],ys0[])),As3_2,WT[])))).
+
+14. By 13, the attacker may know (As3_2,xor(h1((IDs[],ys0[])),h((As3_2,X[]))),h((IDs[],h1((IDs[],ys0[])),As3_2,WT[]))).
+Using the function 2-proj-3-tuple the attacker may obtain xor(h1((IDs[],ys0[])),h((As3_2,X[]))).
+attacker(xor(h1((IDs[],ys0[])),h((As3_2,X[])))).
+
+15. By 13, the attacker may know (As3_2,xor(h1((IDs[],ys0[])),h((As3_2,X[]))),h((IDs[],h1((IDs[],ys0[])),As3_2,WT[]))).
+Using the function 1-proj-3-tuple the attacker may obtain As3_2.
+attacker(As3_2).
+
+16. By 15, the attacker may know As3_2.
+By 14, the attacker may know xor(h1((IDs[],ys0[])),h((As3_2,X[]))).
+By 12, the attacker may know V13_1.
+Using the function 3-tuple the attacker may obtain (As3_2,xor(h1((IDs[],ys0[])),h((As3_2,X[]))),V13_1).
+attacker((As3_2,xor(h1((IDs[],ys0[])),h((As3_2,X[]))),V13_1)).
+
+17. The event @p_act(@occ39_1[],(As2[],xor(N1[],h((As2[],X[]))),h((IDs[],N1[],As2[],WT[])))) records how variables are instantiated at {39}.
+The message (As2[],xor(N1[],h((As2[],X[]))),h((IDs[],N1[],As2[],WT[]))) that the attacker may have by 11 may be received at input {39}.
+The event @p_act(@occ56_1[],(As3_2,xor(h1((IDs[],ys0[])),h((As3_2,X[]))),V13_1)) records how variables are instantiated at {56}.
+The message (As3_2,xor(h1((IDs[],ys0[])),h((As3_2,X[]))),V13_1) that the attacker may have by 16 may be received at input {56}.
+We have h1((IDs[],ys0[])) ≠ N1[] && h1((IDs[],ys0[])) ≠ xor(N1[],h((h((As2[],Asp2_1,WT[])),Asp2_1))).
+So event SPReject(h1((IDs[],ys0[]))) may be executed at {70}.
+event(SPReject(h1((IDs[],ys0[])))).
+
+18. By 17, event(SPReject(h1((IDs[],ys0[])))).
+By 6, event(SLogin3(h1((IDs[],ys0[])))).
+The goals are reached, combined in the following fact:
+event(SPReject(h1((IDs[],ys0[])))) && event(SLogin3(h1((IDs[],ys0[])))).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+new ys0: bitstring creating ys0_1 at {1}
+
+new N1: bitstring creating N1_1 at {3}
+
+new L0: bitstring creating L0_1 at {4}
+
+out(c, (~M,~M_1,~M_2)) with ~M = xor(h1((IDs,ys0_1)),h((WT,X))), ~M_1 = h((IDsp,IDs,h1((IDs,ys0_1)),WT)), ~M_2 = Resyn at {5}
+
+new As2: bitstring creating As2_2 at {7}
+
+event SLogin2(N1_1) at {8}
+
+out(c, (~M_3,~M_4,~M_5)) with ~M_3 = As2_2, ~M_4 = xor(N1_1,h((As2_2,X))), ~M_5 = h((IDs,N1_1,As2_2,WT)) at {10}
+
+in(c, (~M,~M_1,Resyn)) with ~M = xor(h1((IDs,ys0_1)),h((WT,X))), ~M_1 = h((IDsp,IDs,h1((IDs,ys0_1)),WT)) at {11}
+
+new As3: bitstring creating As3_3 at {28}
+
+event SLogin3(h1((IDs,ys0_1))) at {29} (goal)
+
+out(c, (~M_6,~M_7,~M_8)) with ~M_6 = As3_3, ~M_7 = xor(h1((IDs,ys0_1)),h((As3_3,X))), ~M_8 = h((IDs,h1((IDs,ys0_1)),As3_3,WT)) at {31}
+
+in(c, (~M_3,~M_4,~M_5)) with ~M_3 = As2_2, ~M_4 = xor(N1_1,h((As2_2,X))), ~M_5 = h((IDs,N1_1,As2_2,WT)) at {39}
+
+new Asp2: bitstring creating Asp2_2 at {40}
+
+new ys2: bitstring creating ys2_1 at {41}
+
+out(c, (~M_9,~M_10)) with ~M_9 = Asp2_2, ~M_10 = h((WT,IDsp,xor(N1_1,h((h((As2_2,Asp2_2,WT)),Asp2_2))),Asp2_2,h((IDs,IDsp,h((As2_2,Asp2_2,WT)))))) at {55}
+
+in(c, (~M_6,~M_7,a)) with ~M_6 = As3_3, ~M_7 = xor(h1((IDs,ys0_1)),h((As3_3,X))) at {56}
+
+event SPReject(h1((IDs,ys0_1))) at {70} (goal)
+
+The event SPReject(h1((IDs,ys0_1))) is executed at {70}.
+The event SLogin3(h1((IDs,ys0_1))) is executed at {29}.
+A trace has been found.
+RESULT not (event(SPReject(x)) && event(SLogin3(x))) is false.
+-- Query not event(SRecovered(x)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 154 rules (40 with conclusion selected). Queue: 184 rules.
+400 rules inserted. Base: 266 rules (47 with conclusion selected). Queue: 256 rules.
+600 rules inserted. Base: 377 rules (58 with conclusion selected). Queue: 225 rules.
+select attacker(xor(D_1,h((As2_2,X[]))))/-5000
+800 rules inserted. Base: 494 rules (80 with conclusion selected). Queue: 201 rules.
+1000 rules inserted. Base: 589 rules (103 with conclusion selected). Queue: 179 rules.
+1200 rules inserted. Base: 750 rules (161 with conclusion selected). Queue: 80 rules.
+Starting query not event(SRecovered(x))
+goal reachable: V13_1 ≠ h((IDs[],N1[],As3_2,WT[])) && Vsp_1 ≠ h((WT[],IDsp[],xor(N1[],h((h((As2[],Asp_2,WT[])),Asp_2))),Asp_2,h((IDs[],IDsp[],h((As2[],Asp_2,WT[])))))) && attacker(V13_1) && b-event(@p_act(@occ56_2[],(As3_2,xor(N1[],h((As3_2,X[]))),V13_1))) && b-event(@p_act(@occ39_2[],(As3_2,xor(N1[],h((As3_2,X[]))),h((IDs[],N1[],As3_2,WT[]))))) && b-event(@p_act(@occ32_2[],(xor(h1((IDs[],ys3_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys3_1)),WT[])),Resyn[]))) && attacker(Asp_2) && attacker(Vsp_1) && b-event(@p_act(@occ11_2[],(Asp_2,Vsp_1))) -> event(SRecovered(h1((IDs[],ys3_1))))
+Abbreviations:
+As3_2 = As3[m2 = (Asp_2,Vsp_1)]
+ys3_1 = ys3[V13 = V13_1,ETC3 = xor(N1[],h((As3_2,X[]))),As3_1 = As3_2,V12 = h((IDs[],N1[],As3_2,WT[])),ETC2 = xor(N1[],h((As3_2,X[]))),As2_1 = As3_2]
+
+Derivation:
+Abbreviations:
+As3_2 = As3[m2 = (Asp_2,Vsp_1)]
+ys3_1 = ys3[V13 = V13_1,ETC3 = xor(N1[],h((As3_2,X[]))),As3_1 = As3_2,V12 = h((IDs[],N1[],As3_2,WT[])),ETC2 = xor(N1[],h((As3_2,X[]))),As2_1 = As3_2]
+
+1. We assume as hypothesis that
+attacker(Vsp_1).
+
+2. We assume as hypothesis that
+attacker(Asp_2).
+
+3. By 2, the attacker may know Asp_2.
+By 1, the attacker may know Vsp_1.
+Using the function 2-tuple the attacker may obtain (Asp_2,Vsp_1).
+attacker((Asp_2,Vsp_1)).
+
+4. The attacker initially knows Resyn[].
+attacker(Resyn[]).
+
+5. The event @p_act(@occ11_2[],(Asp_2,Vsp_1)) records how variables are instantiated at {11}.
+The message (Asp_2,Vsp_1) that the attacker may have by 3 may be received at input {11}.
+We have Vsp_1 ≠ h((WT[],IDsp[],xor(N1[],h((h((As2[],Asp_2,WT[])),Asp_2))),Asp_2,h((IDs[],IDsp[],h((As2[],Asp_2,WT[])))))).
+So the message (As3_2,xor(N1[],h((As3_2,X[]))),h((IDs[],N1[],As3_2,WT[]))) may be sent to the attacker at output {31}.
+attacker((As3_2,xor(N1[],h((As3_2,X[]))),h((IDs[],N1[],As3_2,WT[])))).
+
+6. By 5, the attacker may know (As3_2,xor(N1[],h((As3_2,X[]))),h((IDs[],N1[],As3_2,WT[]))).
+Using the function 3-proj-3-tuple the attacker may obtain h((IDs[],N1[],As3_2,WT[])).
+attacker(h((IDs[],N1[],As3_2,WT[]))).
+
+7. By 5, the attacker may know (As3_2,xor(N1[],h((As3_2,X[]))),h((IDs[],N1[],As3_2,WT[]))).
+Using the function 2-proj-3-tuple the attacker may obtain xor(N1[],h((As3_2,X[]))).
+attacker(xor(N1[],h((As3_2,X[])))).
+
+8. By 5, the attacker may know (As3_2,xor(N1[],h((As3_2,X[]))),h((IDs[],N1[],As3_2,WT[]))).
+Using the function 1-proj-3-tuple the attacker may obtain As3_2.
+attacker(As3_2).
+
+9. By 8, the attacker may know As3_2.
+By 7, the attacker may know xor(N1[],h((As3_2,X[]))).
+By 6, the attacker may know h((IDs[],N1[],As3_2,WT[])).
+Using the function 3-tuple the attacker may obtain (As3_2,xor(N1[],h((As3_2,X[]))),h((IDs[],N1[],As3_2,WT[]))).
+attacker((As3_2,xor(N1[],h((As3_2,X[]))),h((IDs[],N1[],As3_2,WT[])))).
+
+10. We assume as hypothesis that
+attacker(V13_1).
+
+11. By 8, the attacker may know As3_2.
+By 7, the attacker may know xor(N1[],h((As3_2,X[]))).
+By 10, the attacker may know V13_1.
+Using the function 3-tuple the attacker may obtain (As3_2,xor(N1[],h((As3_2,X[]))),V13_1).
+attacker((As3_2,xor(N1[],h((As3_2,X[]))),V13_1)).
+
+12. The event @p_act(@occ39_2[],(As3_2,xor(N1[],h((As3_2,X[]))),h((IDs[],N1[],As3_2,WT[])))) records how variables are instantiated at {39}.
+The message (As3_2,xor(N1[],h((As3_2,X[]))),h((IDs[],N1[],As3_2,WT[]))) that the attacker may have by 9 may be received at input {39}.
+The event @p_act(@occ56_2[],(As3_2,xor(N1[],h((As3_2,X[]))),V13_1)) records how variables are instantiated at {56}.
+The message (As3_2,xor(N1[],h((As3_2,X[]))),V13_1) that the attacker may have by 11 may be received at input {56}.
+We have V13_1 ≠ h((IDs[],N1[],As3_2,WT[])).
+So the message (xor(h1((IDs[],ys3_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys3_1)),WT[])),Resyn[]) may be sent to the attacker at output {69}.
+attacker((xor(h1((IDs[],ys3_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys3_1)),WT[])),Resyn[])).
+
+13. By 12, the attacker may know (xor(h1((IDs[],ys3_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys3_1)),WT[])),Resyn[]).
+Using the function 2-proj-3-tuple the attacker may obtain h((IDsp[],IDs[],h1((IDs[],ys3_1)),WT[])).
+attacker(h((IDsp[],IDs[],h1((IDs[],ys3_1)),WT[]))).
+
+14. By 12, the attacker may know (xor(h1((IDs[],ys3_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys3_1)),WT[])),Resyn[]).
+Using the function 1-proj-3-tuple the attacker may obtain xor(h1((IDs[],ys3_1)),h((WT[],X[]))).
+attacker(xor(h1((IDs[],ys3_1)),h((WT[],X[])))).
+
+15. By 14, the attacker may know xor(h1((IDs[],ys3_1)),h((WT[],X[]))).
+By 13, the attacker may know h((IDsp[],IDs[],h1((IDs[],ys3_1)),WT[])).
+By 4, the attacker may know Resyn[].
+Using the function 3-tuple the attacker may obtain (xor(h1((IDs[],ys3_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys3_1)),WT[])),Resyn[]).
+attacker((xor(h1((IDs[],ys3_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys3_1)),WT[])),Resyn[])).
+
+16. The event @p_act(@occ11_2[],(Asp_2,Vsp_1)) records how variables are instantiated at {11}.
+The message (Asp_2,Vsp_1) that the attacker may have by 3 may be received at input {11}.
+The event @p_act(@occ32_2[],(xor(h1((IDs[],ys3_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys3_1)),WT[])),Resyn[])) records how variables are instantiated at {32}.
+The message (xor(h1((IDs[],ys3_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys3_1)),WT[])),Resyn[]) that the attacker may have by 15 may be received at input {32}.
+We have Vsp_1 ≠ h((WT[],IDsp[],xor(N1[],h((h((As2[],Asp_2,WT[])),Asp_2))),Asp_2,h((IDs[],IDsp[],h((As2[],Asp_2,WT[])))))).
+So event SRecovered(h1((IDs[],ys3_1))) may be executed at {36}.
+event(SRecovered(h1((IDs[],ys3_1)))).
+
+17. By 16, event(SRecovered(h1((IDs[],ys3_1)))).
+The goal is reached, represented in the following fact:
+event(SRecovered(h1((IDs[],ys3_1)))).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+new ys0: bitstring creating ys0_1 at {1}
+
+new N1: bitstring creating N1_1 at {3}
+
+new L0: bitstring creating L0_1 at {4}
+
+out(c, (~M,~M_1,~M_2)) with ~M = xor(h1((IDs,ys0_1)),h((WT,X))), ~M_1 = h((IDsp,IDs,h1((IDs,ys0_1)),WT)), ~M_2 = Resyn at {5}
+
+new As2: bitstring creating As2_2 at {7}
+
+event SLogin2(N1_1) at {8}
+
+out(c, (~M_3,~M_4,~M_5)) with ~M_3 = As2_2, ~M_4 = xor(N1_1,h((As2_2,X))), ~M_5 = h((IDs,N1_1,As2_2,WT)) at {10}
+
+in(c, (a,a_1)) at {11}
+
+new As3: bitstring creating As3_3 at {28}
+
+event SLogin3(N1_1) at {29}
+
+out(c, (~M_6,~M_7,~M_8)) with ~M_6 = As3_3, ~M_7 = xor(N1_1,h((As3_3,X))), ~M_8 = h((IDs,N1_1,As3_3,WT)) at {31}
+
+in(c, (~M_6,~M_7,~M_8)) with ~M_6 = As3_3, ~M_7 = xor(N1_1,h((As3_3,X))), ~M_8 = h((IDs,N1_1,As3_3,WT)) at {39}
+
+new Asp2: bitstring creating Asp2_1 at {40}
+
+new ys2: bitstring creating ys2_1 at {41}
+
+out(c, (~M_9,~M_10)) with ~M_9 = Asp2_1, ~M_10 = h((WT,IDsp,xor(N1_1,h((h((As3_3,Asp2_1,WT)),Asp2_1))),Asp2_1,h((IDs,IDsp,h((As3_3,Asp2_1,WT)))))) at {55}
+
+in(c, (~M_6,~M_7,a_2)) with ~M_6 = As3_3, ~M_7 = xor(N1_1,h((As3_3,X))) at {56}
+
+new ys3: bitstring creating ys3_2 at {67}
+
+out(c, (~M_11,~M_12,~M_13)) with ~M_11 = xor(h1((IDs,ys3_2)),h((WT,X))), ~M_12 = h((IDsp,IDs,h1((IDs,ys3_2)),WT)), ~M_13 = Resyn at {69}
+
+in(c, (~M_11,~M_12,Resyn)) with ~M_11 = xor(h1((IDs,ys3_2)),h((WT,X))), ~M_12 = h((IDsp,IDs,h1((IDs,ys3_2)),WT)) at {32}
+
+event SRecovered(h1((IDs,ys3_2))) at {36} (goal)
+
+The event SRecovered(h1((IDs,ys3_2))) is executed at {36}.
+A trace has been found.
+RESULT not event(SRecovered(x)) is false.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query not (event(SPReject(x)) && event(SLogin3(x)) && event(SLogin2(y)) && x ≠ y) is false.
+
+Query not (event(SPReject(x)) && event(SLogin3(x))) is false.
+
+Query not event(SRecovered(x)) is false.
+
+--------------------------------------------------------------
+

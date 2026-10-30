@@ -1,0 +1,195 @@
+Process 0 (that is, the initial process):
+(
+    {1}!
+    {2}new ys: bitstring;
+    {3}let TC: bitstring = h1((IDs,ys)) in
+    {4}let MTC: bitstring = xor(TC,h((WT,X))) in
+    {5}let MV: bitstring = h((IDsp,IDs,TC,WT)) in
+    {6}event SPIssues(TC);
+    {7}out(c, (MTC,MV,Resyn))
+) | (
+    {8}!
+    {9}in(c, (MTC_1: bitstring,MV_1: bitstring,=Resyn));
+    {10}let TCn: bitstring = unxor(MTC_1,h((WT,X))) in
+    {11}if (MV_1 = h((IDsp,IDs,TCn,WT))) then
+    {12}event SInstalls(TCn)
+)
+
+--  Process 1 (that is, process 0, with let moved downwards):
+(
+    {1}!
+    {2}new ys: bitstring;
+    {3}let TC: bitstring = h1((IDs,ys)) in
+    {6}event SPIssues(TC);
+    {5}let MV: bitstring = h((IDsp,IDs,TC,WT)) in
+    {4}let MTC: bitstring = xor(TC,h((WT,X))) in
+    {7}out(c, (MTC,MV,Resyn))
+) | (
+    {8}!
+    {9}in(c, (MTC_1: bitstring,MV_1: bitstring,=Resyn));
+    {10}let TCn: bitstring = unxor(MTC_1,h((WT,X))) in
+    {11}if (MV_1 = h((IDsp,IDs,TCn,WT))) then
+    {12}event SInstalls(TCn)
+)
+
+-- Query inj-event(SInstalls(tc)) ==> inj-event(SPIssues(tc)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query inj-event(SInstalls(tc)) ==> inj-event(SPIssues(tc))
+goal reachable: @sid ≠ @sid_1 && b-inj-event(SPIssues(h1((IDs[],ys_1))),@occ6_1) -> inj-event(SInstalls(h1((IDs[],ys_1))),@occ12_1) && inj-event(SInstalls(h1((IDs[],ys_1))),@occ12_2)
+Abbreviations:
+ys_1 = ys[!1 = @sid_2]
+@occ12_1 = @occ12[MV_1 = h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[])),MTC_1 = xor(h1((IDs[],ys_1)),h((WT[],X[]))),!1 = @sid]
+@occ12_2 = @occ12[MV_1 = h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[])),MTC_1 = xor(h1((IDs[],ys_1)),h((WT[],X[]))),!1 = @sid_1]
+@occ6_1 = @occ6[!1 = @sid_2]
+
+Derivation:
+Abbreviations:
+ys_1 = ys[!1 = @sid]
+@occ12_1 = @occ12[MV_1 = h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[])),MTC_1 = xor(h1((IDs[],ys_1)),h((WT[],X[]))),!1 = @sid_1]
+@occ12_2 = @occ12[MV_1 = h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[])),MTC_1 = xor(h1((IDs[],ys_1)),h((WT[],X[]))),!1 = @sid_2]
+@occ6_1 = @occ6[!1 = @sid]
+
+1. The attacker initially knows Resyn[].
+attacker(Resyn[]).
+
+2. The event SPIssues(h1((IDs[],ys_1))) (with occurrence name @occ6_1) may be executed at {6}.
+So the message (xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[])),Resyn[]) may be sent to the attacker at output {7}.
+attacker((xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[])),Resyn[])).
+
+3. By 2, the attacker may know (xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[])),Resyn[]).
+Using the function 2-proj-3-tuple the attacker may obtain h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[])).
+attacker(h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[]))).
+
+4. By 2, the attacker may know (xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[])),Resyn[]).
+Using the function 1-proj-3-tuple the attacker may obtain xor(h1((IDs[],ys_1)),h((WT[],X[]))).
+attacker(xor(h1((IDs[],ys_1)),h((WT[],X[])))).
+
+5. By 4, the attacker may know xor(h1((IDs[],ys_1)),h((WT[],X[]))).
+By 3, the attacker may know h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[])).
+By 1, the attacker may know Resyn[].
+Using the function 3-tuple the attacker may obtain (xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[])),Resyn[]).
+attacker((xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[])),Resyn[])).
+
+6. The message (xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[])),Resyn[]) that the attacker may have by 5 may be received at input {9}.
+So event SInstalls(h1((IDs[],ys_1))) may be executed at {12} in session @sid_2.
+inj-event(SInstalls(h1((IDs[],ys_1))),@occ12_2).
+
+7. By 6, inj-event(SInstalls(h1((IDs[],ys_1))),@occ12_2).
+The goal is reached, represented in the following fact:
+inj-event(SInstalls(h1((IDs[],ys_1))),@occ12_2).
+
+8. The message (xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[])),Resyn[]) that the attacker may have by 5 may be received at input {9}.
+So event SInstalls(h1((IDs[],ys_1))) may be executed at {12} in session @sid_1.
+inj-event(SInstalls(h1((IDs[],ys_1))),@occ12_1).
+
+9. By 8, inj-event(SInstalls(h1((IDs[],ys_1))),@occ12_1).
+The goal is reached, represented in the following fact:
+inj-event(SInstalls(h1((IDs[],ys_1))),@occ12_1).
+
+10. By 9, inj-event(SInstalls(h1((IDs[],ys_1))),@occ12_1).
+By 7, inj-event(SInstalls(h1((IDs[],ys_1))),@occ12_2).
+We have @occ12_1 ≠ @occ12_2.
+The goals for injectivity are reached, combined in the following fact:
+inj-event(SInstalls(h1((IDs[],ys_1))),@occ12_1) && inj-event(SInstalls(h1((IDs[],ys_1))),@occ12_2).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+new ys: bitstring creating ys_2 at {2} in copy a
+
+event SPIssues(h1((IDs,ys_2))) at {6} in copy a
+
+out(c, (~M,~M_1,~M_2)) with ~M = xor(h1((IDs,ys_2)),h((WT,X))), ~M_1 = h((IDsp,IDs,h1((IDs,ys_2)),WT)), ~M_2 = Resyn at {7} in copy a
+
+in(c, (~M,~M_1,Resyn)) with ~M = xor(h1((IDs,ys_2)),h((WT,X))), ~M_1 = h((IDsp,IDs,h1((IDs,ys_2)),WT)) at {9} in copy a_1
+
+event SInstalls(h1((IDs,ys_2))) at {12} in copy a_1 (goal)
+
+in(c, (~M,~M_1,Resyn)) with ~M = xor(h1((IDs,ys_2)),h((WT,X))), ~M_1 = h((IDsp,IDs,h1((IDs,ys_2)),WT)) at {9} in copy a_2
+
+event SInstalls(h1((IDs,ys_2))) at {12} in copy a_2 (goal)
+
+The event SInstalls(h1((IDs,ys_2))) is executed at {12} in copy a_1.
+The event SInstalls(h1((IDs,ys_2))) is executed at {12} in copy a_2.
+A trace has been found.
+RESULT inj-event(SInstalls(tc)) ==> inj-event(SPIssues(tc)) is false.
+RESULT (but event(SInstalls(tc)) ==> event(SPIssues(tc)) is true.)
+-- Query event(SInstalls(tc)) ==> event(SPIssues(tc)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(SInstalls(tc)) ==> event(SPIssues(tc))
+goal reachable: b-event(SPIssues(h1((IDs[],ys_1)))) -> event(SInstalls(h1((IDs[],ys_1))))
+Abbreviations:
+ys_1 = ys[!1 = @sid]
+RESULT event(SInstalls(tc)) ==> event(SPIssues(tc)) is true.
+-- Query not event(SInstalls(tc)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query not event(SInstalls(tc))
+goal reachable: event(SInstalls(h1((IDs[],ys_1))))
+Abbreviations:
+ys_1 = ys[!1 = @sid]
+
+Derivation:
+Abbreviations:
+ys_1 = ys[!1 = @sid]
+
+1. The attacker initially knows Resyn[].
+attacker(Resyn[]).
+
+2. The message (xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[])),Resyn[]) may be sent to the attacker at output {7}.
+attacker((xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[])),Resyn[])).
+
+3. By 2, the attacker may know (xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[])),Resyn[]).
+Using the function 2-proj-3-tuple the attacker may obtain h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[])).
+attacker(h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[]))).
+
+4. By 2, the attacker may know (xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[])),Resyn[]).
+Using the function 1-proj-3-tuple the attacker may obtain xor(h1((IDs[],ys_1)),h((WT[],X[]))).
+attacker(xor(h1((IDs[],ys_1)),h((WT[],X[])))).
+
+5. By 4, the attacker may know xor(h1((IDs[],ys_1)),h((WT[],X[]))).
+By 3, the attacker may know h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[])).
+By 1, the attacker may know Resyn[].
+Using the function 3-tuple the attacker may obtain (xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[])),Resyn[]).
+attacker((xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[])),Resyn[])).
+
+6. The message (xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[])),Resyn[]) that the attacker may have by 5 may be received at input {9}.
+So event SInstalls(h1((IDs[],ys_1))) may be executed at {12}.
+event(SInstalls(h1((IDs[],ys_1)))).
+
+7. By 6, event(SInstalls(h1((IDs[],ys_1)))).
+The goal is reached, represented in the following fact:
+event(SInstalls(h1((IDs[],ys_1)))).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+new ys: bitstring creating ys_2 at {2} in copy a
+
+event SPIssues(h1((IDs,ys_2))) at {6} in copy a
+
+out(c, (~M,~M_1,~M_2)) with ~M = xor(h1((IDs,ys_2)),h((WT,X))), ~M_1 = h((IDsp,IDs,h1((IDs,ys_2)),WT)), ~M_2 = Resyn at {7} in copy a
+
+in(c, (~M,~M_1,Resyn)) with ~M = xor(h1((IDs,ys_2)),h((WT,X))), ~M_1 = h((IDsp,IDs,h1((IDs,ys_2)),WT)) at {9} in copy a_1
+
+event SInstalls(h1((IDs,ys_2))) at {12} in copy a_1 (goal)
+
+The event SInstalls(h1((IDs,ys_2))) is executed at {12} in copy a_1.
+A trace has been found.
+RESULT not event(SInstalls(tc)) is false.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query inj-event(SInstalls(tc)) ==> inj-event(SPIssues(tc)) is false.
+
+Query event(SInstalls(tc)) ==> event(SPIssues(tc)) is true.
+
+Query not event(SInstalls(tc)) is false.
+
+--------------------------------------------------------------
+

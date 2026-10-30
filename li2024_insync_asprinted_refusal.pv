@@ -1,0 +1,118 @@
+(* Li et al. 2024 (Sensors), Sections 3.3 (A1-A4) and 3.4 (SR1-SR2).
+   STRICT bounded model.
+   - The sensor sends a login and accepts exactly ONE response to it:
+     either the normal reply {Asp, Vsp} or a resynchronisation message
+     {MTC, MV, Resyn}.  Anything else leaves its credential unchanged.
+   - The server keeps (TC, prTC, Login) and runs the paper's A2 logic,
+     including the Login check in the prTC branch.
+   - Three logins by the sensor; the third login's refusal is the query.
+   Starting state: both hold R0 just after one legitimate re-synchronisation
+   (which the paper performs whenever a sensor lags by one step).  The
+   message that carried R0 went over the public channel and the attacker
+   recorded it.
+   Attacker: Dolev-Yao on c (record, drop, replay, reorder, inject).
+   ECDH abstracted: SK = h(As||Asp||WT); SSK = h(IDs||IDsp||SK) as in A3.
+   xor modelled as a one-time pad with the cancellation equation. *)
+
+set preciseActions = true.
+
+free c: channel.
+fun h(bitstring): bitstring.
+fun h1(bitstring): bitstring.
+fun xor(bitstring, bitstring): bitstring.
+reduc forall m: bitstring, k: bitstring; unxor(xor(m, k), k) = m.
+
+free IDs, IDsp, Resyn, nothing: bitstring.
+free WT: bitstring [private].   (* WTsp = WTs *)
+free X:  bitstring [private].   (* Xsp *)
+
+event SLogin2(bitstring).
+event SLogin3(bitstring).
+event SPReject(bitstring).
+event SRecovered(bitstring).
+
+(* Replay-induced lockout: the sensor held y at login 2, holds x <> y at
+   login 3, and the server refuses x as unknown.  Expected: reachable. *)
+query x: bitstring, y: bitstring;
+  event(SPReject(x)) && event(SLogin3(x)) && event(SLogin2(y)) && x <> y.
+
+
+(* ---------- sensor ---------- *)
+letfun mkA1(TC: bitstring, As: bitstring) =
+  (As, xor(TC, h((As, X))), h((IDs, TC, As, WT))).
+
+(* one response to a login: reply, resync, or junk *)
+letfun s_resp(TC: bitstring, As: bitstring, m: bitstring) =
+  let (Asp: bitstring, Vsp: bitstring) = m in
+    ( let SK = h((As, Asp, WT)) in
+      let SSK = h((IDs, IDsp, SK)) in
+      let TCn = xor(TC, h((SK, Asp))) in
+      if Vsp = h((WT, IDsp, TCn, Asp, SSK)) then TCn else TC )
+  else let (MTC: bitstring, MV: bitstring, =Resyn) = m in
+    ( let TCn = unxor(MTC, h((WT, X))) in
+      ( if MV = h((IDsp, IDs, TCn, WT)) then TCn else TC )
+      else TC )
+  else TC.
+
+let Sensor(T1: bitstring) =
+  new As2: bitstring; event SLogin2(T1);
+  out(c, mkA1(T1, As2));
+  in(c, m2: bitstring);
+  let T2 = s_resp(T1, As2, m2) in
+  new As3: bitstring; event SLogin3(T2);
+  out(c, mkA1(T2, As3));
+  in(c, m3: bitstring);
+  let (MTC: bitstring, MV: bitstring, =Resyn) = m3 in
+  let TCn = unxor(MTC, h((WT, X))) in
+  if MV = h((IDsp, IDs, TCn, WT)) then event SRecovered(TCn).
+
+(* ---------- server ---------- *)
+(* A2/A3 on one login; returns (TC', prTC', Login', output) *)
+letfun sp_step(TC: bitstring, prTC: bitstring, L: bitstring,
+               As: bitstring, ETC: bitstring, V1: bitstring,
+               Asp: bitstring, ys: bitstring) =
+  let D = unxor(ETC, h((As, X))) in
+  ( if D = TC then
+    ( if V1 = h((IDs, TC, As, WT)) then
+        ( let SK = h((As, Asp, WT)) in
+          let SSK = h((IDs, IDsp, SK)) in
+          let TCn = xor(TC, h((SK, Asp))) in
+          (TCn, TC, V1, (Asp, h((WT, IDsp, TCn, Asp, SSK)))) )
+      else (TC, TC, V1, nothing) )
+  else if D = prTC then
+    ( if L = V1 then (TC, prTC, L, nothing)
+      else ( let R = h1((IDs, ys)) in
+             (R, R, V1, (xor(R, h((WT, X))), h((IDsp, IDs, R, WT)), Resyn)) ) )
+  else (TC, prTC, L, nothing) )
+  else (TC, prTC, L, nothing).
+
+let Server(TCa: bitstring, Pa: bitstring, La: bitstring) =
+  in(c, (As2: bitstring, ETC2: bitstring, V12: bitstring));
+  new Asp2: bitstring; new ys2: bitstring;
+  let (TCb: bitstring, Pb: bitstring, Lb: bitstring, o2: bitstring) =
+      sp_step(TCa, Pa, La, As2, ETC2, V12, Asp2, ys2) in
+  out(c, o2);
+  (* third login: explicit branches, the "neither" branch is the refusal *)
+  in(c, (As3: bitstring, ETC3: bitstring, V13: bitstring));
+  let D3 = unxor(ETC3, h((As3, X))) in
+  if D3 = TCb then
+    ( if V13 = h((IDs, TCb, As3, WT)) then
+        new Asp3: bitstring;
+        let SK = h((As3, Asp3, WT)) in
+        let SSK = h((IDs, IDsp, SK)) in
+        let TCn = xor(TCb, h((SK, Asp3))) in
+        out(c, (Asp3, h((WT, IDsp, TCn, Asp3, SSK)))) )
+  else if D3 = Pb then
+    ( if Lb = V13 then 0
+      else new ys3: bitstring;
+        let R = h1((IDs, ys3)) in
+        out(c, (xor(R, h((WT, X))), h((IDsp, IDs, R, WT)), Resyn)) )
+  else event SPReject(D3).
+
+process
+  new ys0: bitstring; let R0 = h1((IDs, ys0)) in
+  new N1: bitstring; new L0: bitstring;
+  (* R0: credential set by an earlier re-synchronisation; its message was recorded.
+     N1: credential after one successful login since then (SP keeps prTC = R0). *)
+  out(c, (xor(R0, h((WT, X))), h((IDsp, IDs, R0, WT)), Resyn));
+  ( Sensor(N1) | Server(N1, R0, L0) )

@@ -1,0 +1,187 @@
+(* Strict repair v2: request binding + pending credential + replay-safe
+   per-device request counter (finite seen-value abstraction).
+   A pending credential is committed only after a fresh valid login proves
+   possession. Every valid old request value in this bounded trace is refused.
+   This models the proposed repair for one sensor, one server, and this
+   recovery episode; it is not an unbounded proof of counter implementation
+   or crash consistency. *)
+
+set preciseActions = true.
+
+free c: channel.
+free stage: channel [private].
+free PreDone, FirstSRReady, RetrySRReady: bitstring [private].
+
+fun h(bitstring): bitstring.
+fun h1(bitstring): bitstring.
+fun xor(bitstring, bitstring): bitstring.
+reduc forall m: bitstring, k: bitstring; unxor(xor(m, k), k) = m.
+
+free IDs, IDsp, Resyn, Normal: bitstring.
+free WTs, Xsp: bitstring [private].
+
+event OldBoundSRIssued(bitstring, bitstring, bitstring).
+event PriorLoginAccepted(bitstring).
+event PriorCounterConsumed(bitstring).
+event PriorA4Sent(bitstring).
+event FirstPendingIssued(bitstring, bitstring, bitstring).
+event SensorRejectedOldSR(bitstring, bitstring).
+event SensorRejectedOtherSR(bitstring, bitstring).
+event SensorRetrySent(bitstring, bitstring).
+event RetryPendingIssued(bitstring, bitstring, bitstring).
+event SensorInstalledPending(bitstring).
+event SensorFinalLogin(bitstring, bitstring).
+event SPReplayRefused(bitstring).
+event SPRejectNeither(bitstring, bitstring).
+event SPCommitPending(bitstring).
+event SPCommitAfterOldReplay(bitstring).
+
+query tc: bitstring, as: bitstring;
+  event(SPRejectNeither(tc, as)) && event(SensorFinalLogin(tc, as)).
+query oldtc: bitstring, q: bitstring, q2: bitstring, as2: bitstring;
+  event(SensorRejectedOldSR(oldtc, q)) && event(SensorRetrySent(q2, as2)).
+query oldtc: bitstring, q: bitstring, pendingtc: bitstring, q2: bitstring, as2: bitstring;
+  event(SensorRejectedOldSR(oldtc, q)) && event(RetryPendingIssued(pendingtc, q2, as2)).
+query oldtc: bitstring, q: bitstring, pendingtc: bitstring;
+  event(SensorRejectedOldSR(oldtc, q)) && event(SPCommitPending(pendingtc)).
+query tc: bitstring; event(SPCommitPending(tc)).
+query tc: bitstring; event(SPCommitAfterOldReplay(tc)).
+query q: bitstring; event(SPReplayRefused(q)).
+query q: bitstring; event(PriorCounterConsumed(q)) && event(SPReplayRefused(q)).
+
+let Sensor(TC0: bitstring, QOld: bitstring,
+           OldMTC: bitstring, OldMV: bitstring) =
+  (* Prior login advances SP, but its A4 is lost, leaving S at TC0. *)
+  new QPrior: bitstring;
+  new AsPrior: bitstring;
+  let ETCPrior = xor(TC0, h((AsPrior, Xsp))) in
+  let VPrior = h((IDs, TC0, QPrior, AsPrior, WTs)) in
+  out(c, (QPrior, AsPrior, ETCPrior, VPrior));
+  in(stage, =PreDone);
+
+  (* Current recovery attempt. *)
+  new QNow: bitstring;
+  new AsNow: bitstring;
+  let ETCNow = xor(TC0, h((AsNow, Xsp))) in
+  let VNow = h((IDs, TC0, QNow, AsNow, WTs)) in
+  out(c, (QNow, AsNow, ETCNow, VNow));
+  in(stage, =FirstSRReady);
+  (* The attacker substitutes exactly the recorded old SR. *)
+  in(c, (Tag1: bitstring, MTC1: bitstring, MV1: bitstring));
+  if Tag1 = Resyn && MTC1 = OldMTC && MV1 = OldMV then
+    (let Candidate1 = unxor(MTC1, h((WTs, Xsp))) in
+     event SensorRejectedOldSR(Candidate1, QNow);
+     (* Keep TC0 and retry with a fresh request counter and As value. *)
+     new QRetry: bitstring;
+     new AsRetry: bitstring;
+     let ETCRetry = xor(TC0, h((AsRetry, Xsp))) in
+     let VRetry = h((IDs, TC0, QRetry, AsRetry, WTs)) in
+     event SensorRetrySent(QRetry, AsRetry);
+     out(c, (QRetry, AsRetry, ETCRetry, VRetry));
+     in(stage, =RetrySRReady);
+     in(c, (Tag2: bitstring, MTC2: bitstring, MV2: bitstring));
+     if Tag2 = Resyn then
+       let Candidate2 = unxor(MTC2, h((WTs, Xsp))) in
+       if MV2 = h((IDsp, IDs, Candidate2, WTs, QRetry, AsRetry)) then
+         (event SensorInstalledPending(Candidate2);
+          new QProof: bitstring;
+          new AsProof: bitstring;
+          let ETCProof = xor(Candidate2, h((AsProof, Xsp))) in
+          let VProof = h((IDs, Candidate2, QProof, AsProof, WTs)) in
+          event SensorFinalLogin(Candidate2, AsProof);
+          out(c, (QProof, AsProof, ETCProof, VProof)))
+       else 0
+     else 0)
+  else 0.
+let Server(TC0: bitstring, QOld: bitstring, OldTC: bitstring) =
+  (* State starts at TC0. A valid normal login advances SP to TC1 and saves
+     QPrior. A4 is dropped, so S remains at TC0 while SP holds (TC1,TC0). *)
+  in(c, (QPrior: bitstring, AsPrior: bitstring,
+         ETCPrior: bitstring, VPrior: bitstring));
+  let TCsPrior = unxor(ETCPrior, h((AsPrior, Xsp))) in
+  if QPrior <> QOld &&
+     TCsPrior = TC0 &&
+     VPrior = h((IDs, TCsPrior, QPrior, AsPrior, WTs)) then
+    (event PriorLoginAccepted(TC0);
+     event PriorCounterConsumed(QPrior);
+     new SKPrior: bitstring;
+     new AspPrior: bitstring;
+     let TC1 = xor(TC0, h((SKPrior, AspPrior))) in
+     let SSKPrior = h((IDs, IDsp, SKPrior)) in
+     let VspPrior = h((WTs, IDsp, TC1, AspPrior, SSKPrior)) in
+     event PriorA4Sent(TC1);
+     out(c, (Normal, AspPrior, VspPrior));
+     out(stage, PreDone);
+
+     in(c, (QNow: bitstring, AsNow: bitstring,
+            ETCNow: bitstring, VNow: bitstring));
+     if QNow = QOld || QNow = QPrior then event SPReplayRefused(QNow)
+     else
+       let TCsNow = unxor(ETCNow, h((AsNow, Xsp))) in
+       if VNow = h((IDs, TCsNow, QNow, AsNow, WTs)) then
+         if TCsNow = TC0 then
+           new ysPending: bitstring;
+           let TSpend = h1((IDs, ysPending)) in
+           let MTC1 = xor(TSpend, h((WTs, Xsp))) in
+           let MV1 = h((IDsp, IDs, TSpend, WTs, QNow, AsNow)) in
+           event FirstPendingIssued(TSpend, QNow, AsNow);
+           out(c, (Resyn, MTC1, MV1));
+           out(stage, FirstSRReady);
+
+           (* After the first reply, accept proof of pending, or a fresh retry
+              with TC0. Refuse every request counter already seen. *)
+           in(c, (QNext: bitstring, AsNext: bitstring,
+                  ETCNext: bitstring, VNext: bitstring));
+           if QNext = QOld || QNext = QPrior || QNext = QNow then
+             event SPReplayRefused(QNext)
+           else
+             let TCsNext = unxor(ETCNext, h((AsNext, Xsp))) in
+             if VNext = h((IDs, TCsNext, QNext, AsNext, WTs)) then
+               if TCsNext = TSpend then event SPCommitPending(TSpend)
+               else if TCsNext = TC0 then
+                 let MTC2 = xor(TSpend, h((WTs, Xsp))) in
+                 let MV2 = h((IDsp, IDs, TSpend, WTs, QNext, AsNext)) in
+                 event RetryPendingIssued(TSpend, QNext, AsNext);
+                 out(c, (Resyn, MTC2, MV2));
+                 out(stage, RetrySRReady);
+                 in(c, (QProof: bitstring, AsProof: bitstring,
+                        ETCProof: bitstring, VProof: bitstring));
+                 if QProof = QOld || QProof = QPrior ||
+                    QProof = QNow || QProof = QNext then
+                   event SPReplayRefused(QProof)
+                 else
+                   let TCsProof = unxor(ETCProof, h((AsProof, Xsp))) in
+                   if VProof = h((IDs, TCsProof, QProof, AsProof, WTs)) then
+                     if TCsProof = TSpend then
+                       (event SPCommitPending(TSpend);
+                        event SPCommitAfterOldReplay(TSpend))
+                     else if TCsProof = TC0 || TCsProof = TC1 then 0
+                     else event SPRejectNeither(TCsProof, AsProof)
+                   else 0
+               else if TCsNext = TC1 then 0
+               else event SPRejectNeither(TCsNext, AsNext)
+             else 0
+         else if TCsNow = TC1 then 0
+         else event SPRejectNeither(TCsNow, AsNow)
+       else 0)
+  else 0.
+
+process
+  (* A previous accepted resync for TC0 was recorded. Its request counter and
+     As are old; the original SR does not bind either value. *)
+  new QOld: bitstring;
+  new ysOld: bitstring;
+  let TC0 = h1((IDs, ysOld)) in
+  new AsOld: bitstring;
+  let OldMTC = xor(TC0, h((WTs, Xsp))) in
+  let OldMV = h((IDsp, IDs, TC0, WTs, QOld, AsOld)) in
+  event OldBoundSRIssued(TC0, QOld, AsOld);
+  out(c, (Resyn, OldMTC, OldMV));
+  (Sensor(TC0, QOld, OldMTC, OldMV) |
+   Server(TC0, QOld, TC0))
+
+
+
+
+
+

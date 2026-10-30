@@ -1,0 +1,51 @@
+(* Li et al. 2024 (Sensors), ECC dynamic-credential scheme.
+   Model 1: the re-synchronisation message SR1 = {MTC, MV, Resyn}
+     MTC = TC' xor h(WTsp || Xsp)
+     MV  = h(IDsp || IDs || TC' || WTsp)
+   Question 2 of the study: can an old, valid re-synchronisation message
+   make the sensor install a stale credential?
+   Encoded as injective agreement: every installation by S must match
+   one distinct issue by SP.  A replay breaks injectivity.
+   Abstractions: WTsp (= WTs, ECDH of long-term keys) and Xsp are shared
+   secrets; h, h1 are free hash functions; xor is modelled as a one-time
+   pad by functions xor/unxor (sound for a fresh TC'). *)
+
+free c: channel.
+
+type key.
+fun h(bitstring): bitstring.
+fun h1(bitstring): bitstring.
+fun xor(bitstring, bitstring): bitstring.
+reduc forall m: bitstring, k: bitstring; unxor(xor(m, k), k) = m.
+
+free IDs, IDsp: bitstring.
+free Resyn: bitstring.
+free WT: bitstring [private].    (* WTsp = WTs *)
+free X:  bitstring [private].    (* Xsp *)
+
+event SPIssues(bitstring).
+event SInstalls(bitstring).
+
+(* Q2: injective agreement; expected FALSE because of replay *)
+query tc: bitstring; inj-event(SInstalls(tc)) ==> inj-event(SPIssues(tc)).
+(* non-injective agreement: expected TRUE (only SP can make MV) *)
+query tc: bitstring; event(SInstalls(tc)) ==> event(SPIssues(tc)).
+(* sanity: the sensor can actually install something *)
+query tc: bitstring; event(SInstalls(tc)).
+
+let SP_resync =
+  new ys: bitstring;
+  let TC = h1((IDs, ys)) in
+  let MTC = xor(TC, h((WT, X))) in
+  let MV = h((IDsp, IDs, TC, WT)) in
+  event SPIssues(TC);
+  out(c, (MTC, MV, Resyn)).
+
+let S_resync =
+  in(c, (MTC: bitstring, MV: bitstring, =Resyn));
+  let TCn = unxor(MTC, h((WT, X))) in
+  if MV = h((IDsp, IDs, TCn, WT)) then
+  event SInstalls(TCn).
+
+process
+  ( !SP_resync | !S_resync )

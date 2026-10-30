@@ -1,0 +1,40 @@
+(* Control: same as Model 1 but the re-synchronisation is challenge-bound.
+   S sends a fresh nonce Ns; SP includes Ns in MV.  Expected: injective
+   agreement TRUE (replay impossible). *)
+
+free c: channel.
+
+fun h(bitstring): bitstring.
+fun h1(bitstring): bitstring.
+fun xor(bitstring, bitstring): bitstring.
+reduc forall m: bitstring, k: bitstring; unxor(xor(m, k), k) = m.
+
+free IDs, IDsp, Resyn: bitstring.
+free WT: bitstring [private].
+free X:  bitstring [private].
+
+event SPIssues(bitstring).
+event SInstalls(bitstring).
+
+query tc: bitstring; inj-event(SInstalls(tc)) ==> inj-event(SPIssues(tc)).
+query tc: bitstring; event(SInstalls(tc)).
+
+let SP_resync =
+  in(c, Ns: bitstring);
+  new ys: bitstring;
+  let TC = h1((IDs, ys)) in
+  let MTC = xor(TC, h((WT, X, Ns))) in
+  let MV = h((IDsp, IDs, TC, WT, Ns)) in
+  event SPIssues(TC);
+  out(c, (MTC, MV, Resyn)).
+
+let S_resync =
+  new Ns: bitstring;
+  out(c, Ns);
+  in(c, (MTC: bitstring, MV: bitstring, =Resyn));
+  let TCn = unxor(MTC, h((WT, X, Ns))) in
+  if MV = h((IDsp, IDs, TCn, WT, Ns)) then
+  event SInstalls(TCn).
+
+process
+  ( !SP_resync | !S_resync )

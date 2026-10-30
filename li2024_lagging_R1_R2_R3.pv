@@ -1,0 +1,189 @@
+(* Li and Hu (2024): bounded model of the R1-R3 recovery rule.
+   The server remembers one value: the As of the last login it answered,
+   and refuses an exact repeat. Older request values follow the modeled
+   protocol rules. The recovery check value binds the pending credential to
+   the As of the login it answers. The device checks that value against the
+   As of its pending login.
+   Scenario: an old recovery message is recorded. A later normal login
+   advances the server to TC1, but its final reply is dropped, leaving the
+   sensor at TC0 and the server with (TC1, TC0). One recovery episode is
+   modeled. This is not an unbounded proof and has no storage or crash model. *)
+
+set preciseActions = true.
+
+free c: channel.
+free stage: channel [private].
+free PreDone, FirstSRReady, RetrySRReady: bitstring [private].
+
+fun h(bitstring): bitstring.
+fun h1(bitstring): bitstring.
+fun xor(bitstring, bitstring): bitstring.
+reduc forall m: bitstring, k: bitstring; unxor(xor(m, k), k) = m.
+
+free IDs, IDsp, Resyn, Normal: bitstring.
+free WTs, Xsp: bitstring [private].
+
+event OldBoundSRIssued(bitstring, bitstring).
+event PriorLoginAccepted(bitstring).
+event PriorAsConsumed(bitstring).
+event PriorA4Sent(bitstring).
+event FirstPendingIssued(bitstring, bitstring).
+event SensorRejectedSR(bitstring, bitstring).
+event SensorRetrySent(bitstring).
+event RetryPendingIssued(bitstring, bitstring).
+event SensorInstalled(bitstring).
+event SensorFinalLogin(bitstring, bitstring).
+event SPReplayRefused(bitstring).
+event SPRejectNeither(bitstring, bitstring).
+event SPCommitPending(bitstring).
+event SPCommitAfterRejectedSR(bitstring).
+
+(* Q1: can the device's actual next login be refused as "neither"? *)
+query tc: bitstring, as: bitstring;
+  event(SPRejectNeither(tc, as)) && event(SensorFinalLogin(tc, as)).
+(* Q2: can the device install the stale credential TC0 (the one of the recorded SR)? *)
+query tc: bitstring, as: bitstring; event(SensorInstalled(tc)) && event(OldBoundSRIssued(tc, as)).
+(* Reachability witnesses (false = reachable). *)
+query tc: bitstring, as: bitstring, as2: bitstring;
+  event(SensorRejectedSR(tc, as)) && event(SensorRetrySent(as2)).
+query tc: bitstring, as: bitstring, p: bitstring, as2: bitstring;
+  event(SensorRejectedSR(tc, as)) && event(RetryPendingIssued(p, as2)).
+query tc: bitstring, as: bitstring, p: bitstring;
+  event(SensorRejectedSR(tc, as)) && event(SPCommitPending(p)).
+query tc: bitstring; event(SPCommitPending(tc)).
+query tc: bitstring; event(SPCommitAfterRejectedSR(tc)).
+query as: bitstring; event(SPReplayRefused(as)).
+query as: bitstring; event(PriorAsConsumed(as)) && event(SPReplayRefused(as)).
+query tc: bitstring; event(SensorInstalled(tc)).
+
+let Sensor(TC0: bitstring) =
+  (* Prior login advances SP, but its A4 is lost, leaving S at TC0. *)
+  new AsPrior: bitstring;
+  let ETCPrior = xor(TC0, h((AsPrior, Xsp))) in
+  let VPrior = h((IDs, TC0, AsPrior, WTs)) in
+  out(c, (AsPrior, ETCPrior, VPrior));
+  in(stage, =PreDone);
+
+  (* Current recovery attempt: fresh As, kept as the request value. *)
+  new AsNow: bitstring;
+  let ETCNow = xor(TC0, h((AsNow, Xsp))) in
+  let VNow = h((IDs, TC0, AsNow, WTs)) in
+  out(c, (AsNow, ETCNow, VNow));
+  in(stage, =FirstSRReady);
+  in(c, (Tag1: bitstring, MTC1: bitstring, MV1: bitstring));
+  if Tag1 = Resyn then
+    let Cand1 = unxor(MTC1, h((WTs, Xsp))) in
+    if MV1 = h((IDsp, IDs, Cand1, WTs, AsNow)) then
+      (* Bound to this login: install and prove possession. *)
+      (event SensorInstalled(Cand1);
+       new AsProof1: bitstring;
+       let ETCProof1 = xor(Cand1, h((AsProof1, Xsp))) in
+       let VProof1 = h((IDs, Cand1, AsProof1, WTs)) in
+       event SensorFinalLogin(Cand1, AsProof1);
+       out(c, (AsProof1, ETCProof1, VProof1)))
+    else
+      (* Not bound to this login (for example the recorded old SR):
+         keep TC0 and retry with a fresh As. *)
+      (event SensorRejectedSR(Cand1, AsNow);
+       new AsRetry: bitstring;
+       let ETCRetry = xor(TC0, h((AsRetry, Xsp))) in
+       let VRetry = h((IDs, TC0, AsRetry, WTs)) in
+       event SensorRetrySent(AsRetry);
+       out(c, (AsRetry, ETCRetry, VRetry));
+       in(stage, =RetrySRReady);
+       in(c, (Tag2: bitstring, MTC2: bitstring, MV2: bitstring));
+       if Tag2 = Resyn then
+         let Cand2 = unxor(MTC2, h((WTs, Xsp))) in
+         if MV2 = h((IDsp, IDs, Cand2, WTs, AsRetry)) then
+           (event SensorInstalled(Cand2);
+            new AsProof2: bitstring;
+            let ETCProof2 = xor(Cand2, h((AsProof2, Xsp))) in
+            let VProof2 = h((IDs, Cand2, AsProof2, WTs)) in
+            event SensorFinalLogin(Cand2, AsProof2);
+            out(c, (AsProof2, ETCProof2, VProof2)))
+         else 0
+       else 0)
+  else 0.
+
+let Server(TC0: bitstring, AsOld: bitstring) =
+  (* State starts at TC0 with AsOld consumed by the earlier recovery.
+     A valid normal login advances SP to TC1; its A4 is dropped by the
+     attacker, so S remains at TC0 while SP holds (TC1, TC0). *)
+  in(c, (AsPrior: bitstring, ETCPrior: bitstring, VPrior: bitstring));
+  if AsPrior = AsOld then event SPReplayRefused(AsPrior)
+  else
+    let TCsPrior = unxor(ETCPrior, h((AsPrior, Xsp))) in
+    if TCsPrior = TC0 && VPrior = h((IDs, TCsPrior, AsPrior, WTs)) then
+      (event PriorLoginAccepted(TC0);
+       event PriorAsConsumed(AsPrior);
+       new SKPrior: bitstring;
+       new AspPrior: bitstring;
+       let TC1 = xor(TC0, h((SKPrior, AspPrior))) in
+       let SSKPrior = h((IDs, IDsp, SKPrior)) in
+       let VspPrior = h((WTs, IDsp, TC1, AspPrior, SSKPrior)) in
+       event PriorA4Sent(TC1);
+       out(c, (Normal, AspPrior, VspPrior));
+       out(stage, PreDone);
+
+       (* Recovery episode. Remembered: AsPrior. *)
+       in(c, (AsNow: bitstring, ETCNow: bitstring, VNow: bitstring));
+       if AsNow = AsPrior then event SPReplayRefused(AsNow)
+       else
+         let TCsNow = unxor(ETCNow, h((AsNow, Xsp))) in
+         if VNow = h((IDs, TCsNow, AsNow, WTs)) then
+           if TCsNow = TC0 then
+             (* lagging credential, no pending: issue pend bound to AsNow *)
+             new ysPending: bitstring;
+             let Pend = h1((IDs, ysPending)) in
+             let MTC1 = xor(Pend, h((WTs, Xsp))) in
+             let MV1 = h((IDsp, IDs, Pend, WTs, AsNow)) in
+             event FirstPendingIssued(Pend, AsNow);
+             out(c, (Resyn, MTC1, MV1));
+             out(stage, FirstSRReady);
+
+             (* Next login: proof of pend (commit), or retry under TC0
+                (re-issue bound to the new As). Remembered: AsNow. *)
+             in(c, (AsNext: bitstring, ETCNext: bitstring, VNext: bitstring));
+             if AsNext = AsNow then
+               event SPReplayRefused(AsNext)
+             else
+               let TCsNext = unxor(ETCNext, h((AsNext, Xsp))) in
+               if VNext = h((IDs, TCsNext, AsNext, WTs)) then
+                 if TCsNext = Pend then event SPCommitPending(Pend)
+                 else if TCsNext = TC0 then
+                   let MTC2 = xor(Pend, h((WTs, Xsp))) in
+                   let MV2 = h((IDsp, IDs, Pend, WTs, AsNext)) in
+                   event RetryPendingIssued(Pend, AsNext);
+                   out(c, (Resyn, MTC2, MV2));
+                   out(stage, RetrySRReady);
+                   in(c, (AsProof: bitstring, ETCProof: bitstring, VProof: bitstring));
+                   if AsProof = AsNext then
+                     event SPReplayRefused(AsProof)
+                   else
+                     let TCsProof = unxor(ETCProof, h((AsProof, Xsp))) in
+                     if VProof = h((IDs, TCsProof, AsProof, WTs)) then
+                       if TCsProof = Pend then
+                         (event SPCommitPending(Pend);
+                          event SPCommitAfterRejectedSR(Pend))
+                       else if TCsProof = TC0 || TCsProof = TC1 then 0
+                       else event SPRejectNeither(TCsProof, AsProof)
+                     else 0
+                 else if TCsNext = TC1 then 0
+                 else event SPRejectNeither(TCsNext, AsNext)
+               else 0
+           else if TCsNow = TC1 then 0
+           else event SPRejectNeither(TCsNow, AsNow)
+         else 0)
+    else 0.
+
+process
+  (* A previous accepted recovery for TC0 was recorded. Under the rule its
+     MV is bound to the As of the login it answered, AsOld. *)
+  new ysOld: bitstring;
+  let TC0 = h1((IDs, ysOld)) in
+  new AsOld: bitstring;
+  let OldMTC = xor(TC0, h((WTs, Xsp))) in
+  let OldMV = h((IDsp, IDs, TC0, WTs, AsOld)) in
+  event OldBoundSRIssued(TC0, AsOld);
+  out(c, (Resyn, OldMTC, OldMV));
+  (Sensor(TC0) | Server(TC0, AsOld))

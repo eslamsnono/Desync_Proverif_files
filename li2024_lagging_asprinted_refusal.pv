@@ -1,0 +1,121 @@
+(* Strict feasibility model for the replay-induced desynchronization in
+   Li et al. (2024), Sections 3.3-3.4.
+   The prehistory is explicit: an old SR set both parties to TC0; the sensor
+   then sent a valid normal login with TC0; SP advanced to TC1 and sent A4,
+   which the attacker dropped. Thus S holds TC0 and SP holds (TC1, TC0).
+   The current, fresh M1 is then answered with the recorded old SR(TC0)
+   instead of the current SR1. This is exactly one response to the request.
+   V1 is checked before any modeled state change (conservative ordering).
+   The Login-token duplicate check from A2 is included. *)
+
+set preciseActions = true.
+
+free c: channel.
+free stage: channel [private].
+free PreDone, RecoverySent: bitstring [private].
+
+fun h(bitstring): bitstring.
+fun h1(bitstring): bitstring.
+fun xor(bitstring, bitstring): bitstring.
+reduc forall m: bitstring, k: bitstring; unxor(xor(m, k), k) = m.
+
+
+free IDs, IDsp, Resyn, Normal: bitstring.
+free WTs, Xsp: bitstring [private].
+
+event OldSRIssued(bitstring).
+event OldSRInstalled(bitstring).
+event PriorLoginAccepted(bitstring).
+event PriorA4Sent(bitstring).
+event CurrentRecoveryIssued(bitstring, bitstring).
+event SensorRecoveryAccepted(bitstring).
+event SensorFinalLogin(bitstring, bitstring).
+event SPRejectDuplicateLogin.
+event SPRejectNeither(bitstring, bitstring).
+event SPAcceptFinalLogin(bitstring, bitstring).
+
+query tc: bitstring, as: bitstring; event(SPRejectNeither(tc, as)).
+query tc: bitstring, as: bitstring;
+  event(SPRejectNeither(tc, as)) ==> event(SensorFinalLogin(tc, as)).
+query event(SPRejectDuplicateLogin).
+query tc: bitstring, as: bitstring; event(SPAcceptFinalLogin(tc, as)).
+
+let Sensor(TC0: bitstring) =
+  new AsPrior: bitstring;
+  let ETCPrior = xor(TC0, h((AsPrior, Xsp))) in
+  let VPrior = h((IDs, TC0, AsPrior, WTs)) in
+  out(c, (AsPrior, ETCPrior, VPrior));
+  in(stage, =PreDone);
+  (* A4 from the prior login was sent but is not received: it was dropped.
+     The sensor therefore still holds TC0. *)
+  new AsNow: bitstring;
+  let ETCNow = xor(TC0, h((AsNow, Xsp))) in
+  let VNow = h((IDs, TC0, AsNow, WTs)) in
+  out(c, (AsNow, ETCNow, VNow));
+  in(stage, =RecoverySent);
+  (* Exactly one response is accepted for this M1. *)
+  in(c, (Tag: bitstring, F1: bitstring, F2: bitstring));
+  if Tag = Resyn then
+    let TCReceived = unxor(F1, h((WTs, Xsp))) in
+    if F2 = h((IDsp, IDs, TCReceived, WTs)) then
+      (event SensorRecoveryAccepted(TCReceived);
+       new AsNext: bitstring;
+       let ETCNext = xor(TCReceived, h((AsNext, Xsp))) in
+       let VNext = h((IDs, TCReceived, AsNext, WTs)) in
+       event SensorFinalLogin(TCReceived, AsNext);
+       out(c, (AsNext, ETCNext, VNext)))
+    else 0
+  else 0.
+
+let Server(TC0: bitstring) =
+  (* Prior normal session: server starts with TC0; the A4 it sends is lost. *)
+  in(c, (AsPrior: bitstring, ETCPrior: bitstring, VPrior: bitstring));
+  let TCsPrior = unxor(ETCPrior, h((AsPrior, Xsp))) in
+  if TCsPrior = TC0 && VPrior = h((IDs, TCsPrior, AsPrior, WTs)) then
+    (event PriorLoginAccepted(TC0);
+     new SKPrior: bitstring;
+     new AspPrior: bitstring;
+     let TC1 = xor(TC0, h((SKPrior, AspPrior))) in
+     let SSKPrior = h((IDs, IDsp, SKPrior)) in
+     let VspPrior = h((WTs, IDsp, TC1, AspPrior, SSKPrior)) in
+     event PriorA4Sent(TC1);
+     out(c, (Normal, AspPrior, VspPrior));
+     out(stage, PreDone);
+     (* Current request uses prTC=TC0. *)
+     in(c, (AsNow: bitstring, ETCNow: bitstring, VNow: bitstring));
+     let TCsNow = unxor(ETCNow, h((AsNow, Xsp))) in
+     if TCsNow = TC1 && VNow = h((IDs, TCsNow, AsNow, WTs)) then 0
+     else if TCsNow = TC0 &&
+             VNow = h((IDs, TCsNow, AsNow, WTs)) then
+       (if VNow = VPrior then event SPRejectDuplicateLogin
+        else
+          new ys: bitstring;
+          let TCr = h1((IDs, ys)) in
+          let MTC = xor(TCr, h((WTs, Xsp))) in
+          let MV = h((IDsp, IDs, TCr, WTs)) in
+          event CurrentRecoveryIssued(TCr, AsNow);
+          (* Li et al. replace both server credentials before delivery. *)
+          out(c, (Resyn, MTC, MV));
+          out(stage, RecoverySent);
+          in(c, (AsNext: bitstring, ETCNext: bitstring, VNext: bitstring));
+          let TCsNext = unxor(ETCNext, h((AsNext, Xsp))) in
+          if VNext = h((IDs, TCsNext, AsNext, WTs)) then
+            if TCsNext = TCr then event SPAcceptFinalLogin(TCsNext, AsNext)
+            else event SPRejectNeither(TCsNext, AsNext)
+          else 0)
+     else 0)
+  else 0.
+
+query tc: bitstring, as: bitstring; event(SPRejectNeither(tc, as)) && event(SensorFinalLogin(tc, as)).
+
+process
+  (* The old SR is a genuine earlier response accepted by S. Both parties
+     then hold TC0 before the prior normal login shown above. *)
+  new ysOld: bitstring;
+  let TC0 = h1((IDs, ysOld)) in
+  event OldSRIssued(TC0);
+  out(c, (Resyn, xor(TC0, h((WTs, Xsp))),
+          h((IDsp, IDs, TC0, WTs))));
+  event OldSRInstalled(TC0);
+  (Sensor(TC0) | Server(TC0))
+

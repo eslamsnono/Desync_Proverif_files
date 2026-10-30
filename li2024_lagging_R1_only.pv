@@ -1,0 +1,102 @@
+(* Strict control: request-binding alone, while keeping Li et al.'s early
+   server reset TC=prTC=TCnew. The server response hash includes AsNow,
+   but both server slots are changed before delivery as in SR1. A recorded
+   response bound to an earlier request is rejected by the sensor; because
+   the sensor does not install the new credential and the server discarded
+   TC0, its next valid M1 is refused. This tests why binding alone is not
+   a sufficient recovery repair. *)
+
+set preciseActions = true.
+
+free c: channel.
+free stage: channel [private].
+free PreDone, RecoverySent: bitstring [private].
+
+fun h(bitstring): bitstring.
+fun h1(bitstring): bitstring.
+fun xor(bitstring, bitstring): bitstring.
+reduc forall m: bitstring, k: bitstring; unxor(xor(m, k), k) = m.
+
+free IDs, IDsp, Resyn, Normal: bitstring.
+free WTs, Xsp: bitstring [private].
+
+event OldBoundSRIssued(bitstring, bitstring).
+event PriorLoginAccepted(bitstring).
+event PriorA4Sent(bitstring).
+event CurrentRecoveryIssued(bitstring, bitstring).
+event SensorRejectedOldSR(bitstring, bitstring).
+event SensorNextLogin(bitstring, bitstring).
+event SPRejectNeither(bitstring, bitstring).
+
+query tc: bitstring, as: bitstring;
+  event(SPRejectNeither(tc, as)) && event(SensorNextLogin(tc, as)).
+
+let Sensor(TC0: bitstring) =
+  new AsPrior: bitstring;
+  let ETCPrior = xor(TC0, h((AsPrior, Xsp))) in
+  let VPrior = h((IDs, TC0, AsPrior, WTs)) in
+  out(c, (AsPrior, ETCPrior, VPrior));
+  in(stage, =PreDone);
+
+  new AsNow: bitstring;
+  let ETCNow = xor(TC0, h((AsNow, Xsp))) in
+  let VNow = h((IDs, TC0, AsNow, WTs)) in
+  out(c, (AsNow, ETCNow, VNow));
+  in(stage, =RecoverySent);
+  (* The single response is the recorded response bound to AsOld. *)
+  in(c, (Tag: bitstring, MTC: bitstring, MV: bitstring));
+  if Tag = Resyn then
+    let Candidate = unxor(MTC, h((WTs, Xsp))) in
+    if MV = h((IDsp, IDs, Candidate, WTs, AsNow)) then 0
+    else
+      (event SensorRejectedOldSR(Candidate, AsNow);
+       new AsNext: bitstring;
+       let ETCNext = xor(TC0, h((AsNext, Xsp))) in
+       let VNext = h((IDs, TC0, AsNext, WTs)) in
+       event SensorNextLogin(TC0, AsNext);
+       out(c, (AsNext, ETCNext, VNext)))
+  else 0.
+
+let Server(TC0: bitstring) =
+  in(c, (AsPrior: bitstring, ETCPrior: bitstring, VPrior: bitstring));
+  let TCsPrior = unxor(ETCPrior, h((AsPrior, Xsp))) in
+  if TCsPrior = TC0 && VPrior = h((IDs, TCsPrior, AsPrior, WTs)) then
+    (event PriorLoginAccepted(TC0);
+     new SKPrior: bitstring;
+     new AspPrior: bitstring;
+     let TC1 = xor(TC0, h((SKPrior, AspPrior))) in
+     let SSKPrior = h((IDs, IDsp, SKPrior)) in
+     let VspPrior = h((WTs, IDsp, TC1, AspPrior, SSKPrior)) in
+     event PriorA4Sent(TC1);
+     out(c, (Normal, AspPrior, VspPrior));
+     out(stage, PreDone);
+     in(c, (AsNow: bitstring, ETCNow: bitstring, VNow: bitstring));
+     let TCsNow = unxor(ETCNow, h((AsNow, Xsp))) in
+     if TCsNow = TC0 && VNow = h((IDs, TCsNow, AsNow, WTs)) then
+       (if VNow = VPrior then 0
+        else
+          new ys: bitstring;
+          let TCr = h1((IDs, ys)) in
+          let MTC = xor(TCr, h((WTs, Xsp))) in
+          let MV = h((IDsp, IDs, TCr, WTs, AsNow)) in
+          event CurrentRecoveryIssued(TCr, AsNow);
+          (* Binding is added, but the early-reset flaw remains. *)
+          out(c, (Resyn, MTC, MV));
+          out(stage, RecoverySent);
+          in(c, (AsNext: bitstring, ETCNext: bitstring, VNext: bitstring));
+          let TCsNext = unxor(ETCNext, h((AsNext, Xsp))) in
+          if VNext = h((IDs, TCsNext, AsNext, WTs)) then
+            if TCsNext = TCr then 0
+            else event SPRejectNeither(TCsNext, AsNext)
+          else 0)
+     else 0)
+  else 0.
+
+process
+  new ysOld: bitstring;
+  let TC0 = h1((IDs, ysOld)) in
+  new AsOld: bitstring;
+  event OldBoundSRIssued(TC0, AsOld);
+  out(c, (Resyn, xor(TC0, h((WTs, Xsp))),
+          h((IDsp, IDs, TC0, WTs, AsOld))));
+  (Sensor(TC0) | Server(TC0))

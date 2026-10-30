@@ -1,0 +1,342 @@
+Process 0 (that is, the initial process):
+{1}new ysOld: bitstring;
+{2}let TC0: bitstring = h1((IDs,ysOld)) in
+{3}new AsOld: bitstring;
+{4}event OldBoundSRIssued(TC0,AsOld);
+{5}out(c, (Resyn,xor(TC0,h((WTs,Xsp))),h((IDsp,IDs,TC0,WTs,AsOld))));
+(
+    {6}new AsPrior: bitstring;
+    {7}let ETCPrior: bitstring = xor(TC0,h((AsPrior,Xsp))) in
+    {8}let VPrior: bitstring = h((IDs,TC0,AsPrior,WTs)) in
+    {9}out(c, (AsPrior,ETCPrior,VPrior));
+    {10}in(stage, =PreDone);
+    {11}new AsNow: bitstring;
+    {12}let ETCNow: bitstring = xor(TC0,h((AsNow,Xsp))) in
+    {13}let VNow: bitstring = h((IDs,TC0,AsNow,WTs)) in
+    {14}out(c, (AsNow,ETCNow,VNow));
+    {15}in(stage, =RecoverySent);
+    {16}in(c, (Tag: bitstring,MTC: bitstring,MV: bitstring));
+    {17}if (Tag = Resyn) then
+    {18}let Candidate: bitstring = unxor(MTC,h((WTs,Xsp))) in
+    {19}if (MV = h((IDsp,IDs,Candidate,WTs,AsNow))) then
+        0
+    else
+        {20}event SensorRejectedOldSR(Candidate,AsNow);
+        {21}new AsNext: bitstring;
+        {22}let ETCNext: bitstring = xor(TC0,h((AsNext,Xsp))) in
+        {23}let VNext: bitstring = h((IDs,TC0,AsNext,WTs)) in
+        {24}event SensorNextLogin(TC0,AsNext);
+        {25}out(c, (AsNext,ETCNext,VNext))
+) | (
+    {26}in(c, (AsPrior_1: bitstring,ETCPrior_1: bitstring,VPrior_1: bitstring));
+    {27}let TCsPrior: bitstring = unxor(ETCPrior_1,h((AsPrior_1,Xsp))) in
+    {28}if ((TCsPrior = TC0) && (VPrior_1 = h((IDs,TCsPrior,AsPrior_1,WTs)))) then
+    {29}event PriorLoginAccepted(TC0);
+    {30}new SKPrior: bitstring;
+    {31}new AspPrior: bitstring;
+    {32}let TC1: bitstring = xor(TC0,h((SKPrior,AspPrior))) in
+    {33}let SSKPrior: bitstring = h((IDs,IDsp,SKPrior)) in
+    {34}let VspPrior: bitstring = h((WTs,IDsp,TC1,AspPrior,SSKPrior)) in
+    {35}event PriorA4Sent(TC1);
+    {36}out(c, (Normal,AspPrior,VspPrior));
+    {37}out(stage, PreDone);
+    {38}in(c, (AsNow_1: bitstring,ETCNow_1: bitstring,VNow_1: bitstring));
+    {39}let TCsNow: bitstring = unxor(ETCNow_1,h((AsNow_1,Xsp))) in
+    {40}if ((TCsNow = TC0) && (VNow_1 = h((IDs,TCsNow,AsNow_1,WTs)))) then
+    {41}if (VNow_1 = VPrior_1) then
+        0
+    else
+        {42}new ys: bitstring;
+        {43}let TCr: bitstring = h1((IDs,ys)) in
+        {44}let MTC_1: bitstring = xor(TCr,h((WTs,Xsp))) in
+        {45}let MV_1: bitstring = h((IDsp,IDs,TCr,WTs,AsNow_1)) in
+        {46}event CurrentRecoveryIssued(TCr,AsNow_1);
+        {47}out(c, (Resyn,MTC_1,MV_1));
+        {48}out(stage, RecoverySent);
+        {49}in(c, (AsNext_1: bitstring,ETCNext_1: bitstring,VNext_1: bitstring));
+        {50}let TCsNext: bitstring = unxor(ETCNext_1,h((AsNext_1,Xsp))) in
+        {51}if (VNext_1 = h((IDs,TCsNext,AsNext_1,WTs))) then
+        {52}if (TCsNext = TCr) then
+            0
+        else
+            {53}event SPRejectNeither(TCsNext,AsNext_1)
+)
+
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}new ysOld: bitstring;
+{3}new AsOld: bitstring;
+{2}let TC0: bitstring = h1((IDs,ysOld)) in
+{4}event OldBoundSRIssued(TC0,AsOld);
+{5}out(c, (Resyn,xor(TC0,h((WTs,Xsp))),h((IDsp,IDs,TC0,WTs,AsOld))));
+(
+    {6}new AsPrior: bitstring;
+    {8}let VPrior: bitstring = h((IDs,TC0,AsPrior,WTs)) in
+    {7}let ETCPrior: bitstring = xor(TC0,h((AsPrior,Xsp))) in
+    {9}out(c, (AsPrior,ETCPrior,VPrior));
+    {10}in(stage, =PreDone);
+    {11}new AsNow: bitstring;
+    {13}let VNow: bitstring = h((IDs,TC0,AsNow,WTs)) in
+    {12}let ETCNow: bitstring = xor(TC0,h((AsNow,Xsp))) in
+    {14}out(c, (AsNow,ETCNow,VNow));
+    {15}in(stage, =RecoverySent);
+    {16}in(c, (Tag: bitstring,MTC: bitstring,MV: bitstring));
+    {17}if (Tag = Resyn) then
+    {18}let Candidate: bitstring = unxor(MTC,h((WTs,Xsp))) in
+    {19}if (MV = h((IDsp,IDs,Candidate,WTs,AsNow))) then
+        0
+    else
+        {20}event SensorRejectedOldSR(Candidate,AsNow);
+        {21}new AsNext: bitstring;
+        {24}event SensorNextLogin(TC0,AsNext);
+        {23}let VNext: bitstring = h((IDs,TC0,AsNext,WTs)) in
+        {22}let ETCNext: bitstring = xor(TC0,h((AsNext,Xsp))) in
+        {25}out(c, (AsNext,ETCNext,VNext))
+) | (
+    {26}in(c, (AsPrior_1: bitstring,ETCPrior_1: bitstring,VPrior_1: bitstring));
+    {27}let TCsPrior: bitstring = unxor(ETCPrior_1,h((AsPrior_1,Xsp))) in
+    {28}if ((TCsPrior = TC0) && (VPrior_1 = h((IDs,TCsPrior,AsPrior_1,WTs)))) then
+    {29}event PriorLoginAccepted(TC0);
+    {30}new SKPrior: bitstring;
+    {31}new AspPrior: bitstring;
+    {32}let TC1: bitstring = xor(TC0,h((SKPrior,AspPrior))) in
+    {35}event PriorA4Sent(TC1);
+    {33}let SSKPrior: bitstring = h((IDs,IDsp,SKPrior)) in
+    {34}let VspPrior: bitstring = h((WTs,IDsp,TC1,AspPrior,SSKPrior)) in
+    {36}out(c, (Normal,AspPrior,VspPrior));
+    {37}out(stage, PreDone);
+    {38}in(c, (AsNow_1: bitstring,ETCNow_1: bitstring,VNow_1: bitstring));
+    {39}let TCsNow: bitstring = unxor(ETCNow_1,h((AsNow_1,Xsp))) in
+    {40}if ((TCsNow = TC0) && (VNow_1 = h((IDs,TCsNow,AsNow_1,WTs)))) then
+    {41}if (VNow_1 = VPrior_1) then
+        0
+    else
+        {42}new ys: bitstring;
+        {43}let TCr: bitstring = h1((IDs,ys)) in
+        {46}event CurrentRecoveryIssued(TCr,AsNow_1);
+        {45}let MV_1: bitstring = h((IDsp,IDs,TCr,WTs,AsNow_1)) in
+        {44}let MTC_1: bitstring = xor(TCr,h((WTs,Xsp))) in
+        {47}out(c, (Resyn,MTC_1,MV_1));
+        {48}out(stage, RecoverySent);
+        {49}in(c, (AsNext_1: bitstring,ETCNext_1: bitstring,VNext_1: bitstring));
+        {50}let TCsNext: bitstring = unxor(ETCNext_1,h((AsNext_1,Xsp))) in
+        {51}if (VNext_1 = h((IDs,TCsNext,AsNext_1,WTs))) then
+        {52}if (TCsNext = TCr) then
+            0
+        else
+            {53}event SPRejectNeither(TCsNext,AsNext_1)
+)
+
+-- Query not (event(SPRejectNeither(tc,as)) && event(SensorNextLogin(tc,as))) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 168 rules (31 with conclusion selected). Queue: 37 rules.
+400 rules inserted. Base: 274 rules (31 with conclusion selected). Queue: 11 rules.
+Starting query not (event(SPRejectNeither(tc,as)) && event(SensorNextLogin(tc,as)))
+goal reachable: MV_2 ≠ h((IDsp[],IDs[],h1((IDs[],ysOld[])),WTs[],AsNow[])) && b-event(@p_act(@occ49[],(AsNext_2,xor(h1((IDs[],ysOld[])),h((AsNext_2,Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsNext_2,WTs[]))))) && attacker(MV_2) && b-event(@p_act(@occ16[],(Resyn[],xor(h1((IDs[],ysOld[])),h((WTs[],Xsp[]))),MV_2))) && b-event(@p_act(@occ38[],(AsNow[],xor(h1((IDs[],ysOld[])),h((AsNow[],Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsNow[],WTs[]))))) && b-event(@p_act(@occ15[],RecoverySent[])) && b-event(@p_act(@occ26[],(AsPrior[],xor(h1((IDs[],ysOld[])),h((AsPrior[],Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsPrior[],WTs[]))))) && b-event(@p_act(@occ10[],PreDone[])) -> event(SPRejectNeither(h1((IDs[],ysOld[])),AsNext_2)) && event(SensorNextLogin(h1((IDs[],ysOld[])),AsNext_2))
+Abbreviations:
+AsNext_2 = AsNext[MV = MV_2,MTC = xor(h1((IDs[],ysOld[])),h((WTs[],Xsp[]))),Tag = Resyn[]]
+
+Derivation:
+Abbreviations:
+AsNext_2 = AsNext[MV = MV_2,MTC = xor(h1((IDs[],ysOld[])),h((WTs[],Xsp[]))),Tag = Resyn[]]
+ys_1 = ys[VNow_1 = h((IDs[],h1((IDs[],ysOld[])),AsNow[],WTs[])),ETCNow_1 = xor(h1((IDs[],ysOld[])),h((AsNow[],Xsp[]))),AsNow_1 = AsNow[],VPrior_1 = h((IDs[],h1((IDs[],ysOld[])),AsPrior[],WTs[])),ETCPrior_1 = xor(h1((IDs[],ysOld[])),h((AsPrior[],Xsp[]))),AsPrior_1 = AsPrior[]]
+
+1. The message (AsPrior[],xor(h1((IDs[],ysOld[])),h((AsPrior[],Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsPrior[],WTs[]))) may be sent to the attacker at output {9}.
+attacker((AsPrior[],xor(h1((IDs[],ysOld[])),h((AsPrior[],Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsPrior[],WTs[])))).
+
+2. By 1, the attacker may know (AsPrior[],xor(h1((IDs[],ysOld[])),h((AsPrior[],Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsPrior[],WTs[]))).
+Using the function 3-proj-3-tuple the attacker may obtain h((IDs[],h1((IDs[],ysOld[])),AsPrior[],WTs[])).
+attacker(h((IDs[],h1((IDs[],ysOld[])),AsPrior[],WTs[]))).
+
+3. By 1, the attacker may know (AsPrior[],xor(h1((IDs[],ysOld[])),h((AsPrior[],Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsPrior[],WTs[]))).
+Using the function 2-proj-3-tuple the attacker may obtain xor(h1((IDs[],ysOld[])),h((AsPrior[],Xsp[]))).
+attacker(xor(h1((IDs[],ysOld[])),h((AsPrior[],Xsp[])))).
+
+4. By 1, the attacker may know (AsPrior[],xor(h1((IDs[],ysOld[])),h((AsPrior[],Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsPrior[],WTs[]))).
+Using the function 1-proj-3-tuple the attacker may obtain AsPrior[].
+attacker(AsPrior[]).
+
+5. By 4, the attacker may know AsPrior[].
+By 3, the attacker may know xor(h1((IDs[],ysOld[])),h((AsPrior[],Xsp[]))).
+By 2, the attacker may know h((IDs[],h1((IDs[],ysOld[])),AsPrior[],WTs[])).
+Using the function 3-tuple the attacker may obtain (AsPrior[],xor(h1((IDs[],ysOld[])),h((AsPrior[],Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsPrior[],WTs[]))).
+attacker((AsPrior[],xor(h1((IDs[],ysOld[])),h((AsPrior[],Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsPrior[],WTs[])))).
+
+6. The event @p_act(@occ26[],(AsPrior[],xor(h1((IDs[],ysOld[])),h((AsPrior[],Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsPrior[],WTs[])))) records how variables are instantiated at {26}.
+The message (AsPrior[],xor(h1((IDs[],ysOld[])),h((AsPrior[],Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsPrior[],WTs[]))) that the attacker may have by 5 may be received at input {26}.
+So the message PreDone[] may be sent on channel stage[] at output {37}.
+mess(stage[],PreDone[]).
+
+7. The event @p_act(@occ10[],PreDone[]) records how variables are instantiated at {10}.
+The message PreDone[] that may be sent on channel stage[] by 6 may be received at input {10}.
+So the message (AsNow[],xor(h1((IDs[],ysOld[])),h((AsNow[],Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsNow[],WTs[]))) may be sent to the attacker at output {14}.
+attacker((AsNow[],xor(h1((IDs[],ysOld[])),h((AsNow[],Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsNow[],WTs[])))).
+
+8. By 7, the attacker may know (AsNow[],xor(h1((IDs[],ysOld[])),h((AsNow[],Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsNow[],WTs[]))).
+Using the function 3-proj-3-tuple the attacker may obtain h((IDs[],h1((IDs[],ysOld[])),AsNow[],WTs[])).
+attacker(h((IDs[],h1((IDs[],ysOld[])),AsNow[],WTs[]))).
+
+9. By 7, the attacker may know (AsNow[],xor(h1((IDs[],ysOld[])),h((AsNow[],Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsNow[],WTs[]))).
+Using the function 2-proj-3-tuple the attacker may obtain xor(h1((IDs[],ysOld[])),h((AsNow[],Xsp[]))).
+attacker(xor(h1((IDs[],ysOld[])),h((AsNow[],Xsp[])))).
+
+10. By 7, the attacker may know (AsNow[],xor(h1((IDs[],ysOld[])),h((AsNow[],Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsNow[],WTs[]))).
+Using the function 1-proj-3-tuple the attacker may obtain AsNow[].
+attacker(AsNow[]).
+
+11. By 10, the attacker may know AsNow[].
+By 9, the attacker may know xor(h1((IDs[],ysOld[])),h((AsNow[],Xsp[]))).
+By 8, the attacker may know h((IDs[],h1((IDs[],ysOld[])),AsNow[],WTs[])).
+Using the function 3-tuple the attacker may obtain (AsNow[],xor(h1((IDs[],ysOld[])),h((AsNow[],Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsNow[],WTs[]))).
+attacker((AsNow[],xor(h1((IDs[],ysOld[])),h((AsNow[],Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsNow[],WTs[])))).
+
+12. The event @p_act(@occ26[],(AsPrior[],xor(h1((IDs[],ysOld[])),h((AsPrior[],Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsPrior[],WTs[])))) records how variables are instantiated at {26}.
+The message (AsPrior[],xor(h1((IDs[],ysOld[])),h((AsPrior[],Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsPrior[],WTs[]))) that the attacker may have by 5 may be received at input {26}.
+The event @p_act(@occ38[],(AsNow[],xor(h1((IDs[],ysOld[])),h((AsNow[],Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsNow[],WTs[])))) records how variables are instantiated at {38}.
+The message (AsNow[],xor(h1((IDs[],ysOld[])),h((AsNow[],Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsNow[],WTs[]))) that the attacker may have by 11 may be received at input {38}.
+We have AsNow[] ≠ AsPrior[].
+So the message RecoverySent[] may be sent on channel stage[] at output {48}.
+mess(stage[],RecoverySent[]).
+
+13. We assume as hypothesis that
+attacker(MV_2).
+
+14. The message (Resyn[],xor(h1((IDs[],ysOld[])),h((WTs[],Xsp[]))),h((IDsp[],IDs[],h1((IDs[],ysOld[])),WTs[],AsOld[]))) may be sent to the attacker at output {5}.
+attacker((Resyn[],xor(h1((IDs[],ysOld[])),h((WTs[],Xsp[]))),h((IDsp[],IDs[],h1((IDs[],ysOld[])),WTs[],AsOld[])))).
+
+15. By 14, the attacker may know (Resyn[],xor(h1((IDs[],ysOld[])),h((WTs[],Xsp[]))),h((IDsp[],IDs[],h1((IDs[],ysOld[])),WTs[],AsOld[]))).
+Using the function 2-proj-3-tuple the attacker may obtain xor(h1((IDs[],ysOld[])),h((WTs[],Xsp[]))).
+attacker(xor(h1((IDs[],ysOld[])),h((WTs[],Xsp[])))).
+
+16. The attacker initially knows Resyn[].
+attacker(Resyn[]).
+
+17. By 16, the attacker may know Resyn[].
+By 15, the attacker may know xor(h1((IDs[],ysOld[])),h((WTs[],Xsp[]))).
+By 13, the attacker may know MV_2.
+Using the function 3-tuple the attacker may obtain (Resyn[],xor(h1((IDs[],ysOld[])),h((WTs[],Xsp[]))),MV_2).
+attacker((Resyn[],xor(h1((IDs[],ysOld[])),h((WTs[],Xsp[]))),MV_2)).
+
+18. The event @p_act(@occ10[],PreDone[]) records how variables are instantiated at {10}.
+The message PreDone[] that may be sent on channel stage[] by 6 may be received at input {10}.
+The event @p_act(@occ15[],RecoverySent[]) records how variables are instantiated at {15}.
+The message RecoverySent[] that may be sent on channel stage[] by 12 may be received at input {15}.
+The event @p_act(@occ16[],(Resyn[],xor(h1((IDs[],ysOld[])),h((WTs[],Xsp[]))),MV_2)) records how variables are instantiated at {16}.
+The message (Resyn[],xor(h1((IDs[],ysOld[])),h((WTs[],Xsp[]))),MV_2) that the attacker may have by 17 may be received at input {16}.
+We have MV_2 ≠ h((IDsp[],IDs[],h1((IDs[],ysOld[])),WTs[],AsNow[])).
+So event SensorNextLogin(h1((IDs[],ysOld[])),AsNext_2) may be executed at {24}.
+event(SensorNextLogin(h1((IDs[],ysOld[])),AsNext_2)).
+
+19. The event @p_act(@occ10[],PreDone[]) records how variables are instantiated at {10}.
+The message PreDone[] that may be sent on channel stage[] by 6 may be received at input {10}.
+The event @p_act(@occ15[],RecoverySent[]) records how variables are instantiated at {15}.
+The message RecoverySent[] that may be sent on channel stage[] by 12 may be received at input {15}.
+The event @p_act(@occ16[],(Resyn[],xor(h1((IDs[],ysOld[])),h((WTs[],Xsp[]))),MV_2)) records how variables are instantiated at {16}.
+The message (Resyn[],xor(h1((IDs[],ysOld[])),h((WTs[],Xsp[]))),MV_2) that the attacker may have by 17 may be received at input {16}.
+We have MV_2 ≠ h((IDsp[],IDs[],h1((IDs[],ysOld[])),WTs[],AsNow[])).
+So the message (AsNext_2,xor(h1((IDs[],ysOld[])),h((AsNext_2,Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsNext_2,WTs[]))) may be sent to the attacker at output {25}.
+attacker((AsNext_2,xor(h1((IDs[],ysOld[])),h((AsNext_2,Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsNext_2,WTs[])))).
+
+20. By 19, the attacker may know (AsNext_2,xor(h1((IDs[],ysOld[])),h((AsNext_2,Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsNext_2,WTs[]))).
+Using the function 3-proj-3-tuple the attacker may obtain h((IDs[],h1((IDs[],ysOld[])),AsNext_2,WTs[])).
+attacker(h((IDs[],h1((IDs[],ysOld[])),AsNext_2,WTs[]))).
+
+21. By 19, the attacker may know (AsNext_2,xor(h1((IDs[],ysOld[])),h((AsNext_2,Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsNext_2,WTs[]))).
+Using the function 2-proj-3-tuple the attacker may obtain xor(h1((IDs[],ysOld[])),h((AsNext_2,Xsp[]))).
+attacker(xor(h1((IDs[],ysOld[])),h((AsNext_2,Xsp[])))).
+
+22. By 19, the attacker may know (AsNext_2,xor(h1((IDs[],ysOld[])),h((AsNext_2,Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsNext_2,WTs[]))).
+Using the function 1-proj-3-tuple the attacker may obtain AsNext_2.
+attacker(AsNext_2).
+
+23. By 22, the attacker may know AsNext_2.
+By 21, the attacker may know xor(h1((IDs[],ysOld[])),h((AsNext_2,Xsp[]))).
+By 20, the attacker may know h((IDs[],h1((IDs[],ysOld[])),AsNext_2,WTs[])).
+Using the function 3-tuple the attacker may obtain (AsNext_2,xor(h1((IDs[],ysOld[])),h((AsNext_2,Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsNext_2,WTs[]))).
+attacker((AsNext_2,xor(h1((IDs[],ysOld[])),h((AsNext_2,Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsNext_2,WTs[])))).
+
+24. The event @p_act(@occ26[],(AsPrior[],xor(h1((IDs[],ysOld[])),h((AsPrior[],Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsPrior[],WTs[])))) records how variables are instantiated at {26}.
+The message (AsPrior[],xor(h1((IDs[],ysOld[])),h((AsPrior[],Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsPrior[],WTs[]))) that the attacker may have by 5 may be received at input {26}.
+The event @p_act(@occ38[],(AsNow[],xor(h1((IDs[],ysOld[])),h((AsNow[],Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsNow[],WTs[])))) records how variables are instantiated at {38}.
+The message (AsNow[],xor(h1((IDs[],ysOld[])),h((AsNow[],Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsNow[],WTs[]))) that the attacker may have by 11 may be received at input {38}.
+The event @p_act(@occ49[],(AsNext_2,xor(h1((IDs[],ysOld[])),h((AsNext_2,Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsNext_2,WTs[])))) records how variables are instantiated at {49}.
+The message (AsNext_2,xor(h1((IDs[],ysOld[])),h((AsNext_2,Xsp[]))),h((IDs[],h1((IDs[],ysOld[])),AsNext_2,WTs[]))) that the attacker may have by 23 may be received at input {49}.
+We have h1((IDs[],ysOld[])) ≠ h1((IDs[],ys_1)) && AsNow[] ≠ AsPrior[].
+So event SPRejectNeither(h1((IDs[],ysOld[])),AsNext_2) may be executed at {53}.
+event(SPRejectNeither(h1((IDs[],ysOld[])),AsNext_2)).
+
+25. By 24, event(SPRejectNeither(h1((IDs[],ysOld[])),AsNext_2)).
+By 18, event(SensorNextLogin(h1((IDs[],ysOld[])),AsNext_2)).
+The goals are reached, combined in the following fact:
+event(SPRejectNeither(h1((IDs[],ysOld[])),AsNext_2)) && event(SensorNextLogin(h1((IDs[],ysOld[])),AsNext_2)).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+new ysOld: bitstring creating ysOld_1 at {1}
+
+new AsOld: bitstring creating AsOld_1 at {3}
+
+event OldBoundSRIssued(h1((IDs,ysOld_1)),AsOld_1) at {4}
+
+out(c, (~M,~M_1,~M_2)) with ~M = Resyn, ~M_1 = xor(h1((IDs,ysOld_1)),h((WTs,Xsp))), ~M_2 = h((IDsp,IDs,h1((IDs,ysOld_1)),WTs,AsOld_1)) at {5}
+
+new AsPrior: bitstring creating AsPrior_2 at {6}
+
+out(c, (~M_3,~M_4,~M_5)) with ~M_3 = AsPrior_2, ~M_4 = xor(h1((IDs,ysOld_1)),h((AsPrior_2,Xsp))), ~M_5 = h((IDs,h1((IDs,ysOld_1)),AsPrior_2,WTs)) at {9}
+
+in(c, (~M_3,~M_4,~M_5)) with ~M_3 = AsPrior_2, ~M_4 = xor(h1((IDs,ysOld_1)),h((AsPrior_2,Xsp))), ~M_5 = h((IDs,h1((IDs,ysOld_1)),AsPrior_2,WTs)) at {26}
+
+event PriorLoginAccepted(h1((IDs,ysOld_1))) at {29}
+
+new SKPrior: bitstring creating SKPrior_1 at {30}
+
+new AspPrior: bitstring creating AspPrior_1 at {31}
+
+event PriorA4Sent(xor(h1((IDs,ysOld_1)),h((SKPrior_1,AspPrior_1)))) at {35}
+
+out(c, (~M_6,~M_7,~M_8)) with ~M_6 = Normal, ~M_7 = AspPrior_1, ~M_8 = h((WTs,IDsp,xor(h1((IDs,ysOld_1)),h((SKPrior_1,AspPrior_1))),AspPrior_1,h((IDs,IDsp,SKPrior_1)))) at {36}
+
+out(stage, PreDone) at {37} received at {10}
+
+new AsNow: bitstring creating AsNow_2 at {11}
+
+out(c, (~M_9,~M_10,~M_11)) with ~M_9 = AsNow_2, ~M_10 = xor(h1((IDs,ysOld_1)),h((AsNow_2,Xsp))), ~M_11 = h((IDs,h1((IDs,ysOld_1)),AsNow_2,WTs)) at {14}
+
+in(c, (~M_9,~M_10,~M_11)) with ~M_9 = AsNow_2, ~M_10 = xor(h1((IDs,ysOld_1)),h((AsNow_2,Xsp))), ~M_11 = h((IDs,h1((IDs,ysOld_1)),AsNow_2,WTs)) at {38}
+
+new ys: bitstring creating ys_2 at {42}
+
+event CurrentRecoveryIssued(h1((IDs,ys_2)),AsNow_2) at {46}
+
+out(c, (~M_12,~M_13,~M_14)) with ~M_12 = Resyn, ~M_13 = xor(h1((IDs,ys_2)),h((WTs,Xsp))), ~M_14 = h((IDsp,IDs,h1((IDs,ys_2)),WTs,AsNow_2)) at {47}
+
+out(stage, RecoverySent) at {48} received at {15}
+
+in(c, (Resyn,~M_1,a)) with ~M_1 = xor(h1((IDs,ysOld_1)),h((WTs,Xsp))) at {16}
+
+event SensorRejectedOldSR(h1((IDs,ysOld_1)),AsNow_2) at {20}
+
+new AsNext: bitstring creating AsNext_3 at {21}
+
+event SensorNextLogin(h1((IDs,ysOld_1)),AsNext_3) at {24} (goal)
+
+out(c, (~M_15,~M_16,~M_17)) with ~M_15 = AsNext_3, ~M_16 = xor(h1((IDs,ysOld_1)),h((AsNext_3,Xsp))), ~M_17 = h((IDs,h1((IDs,ysOld_1)),AsNext_3,WTs)) at {25}
+
+in(c, (~M_15,~M_16,~M_17)) with ~M_15 = AsNext_3, ~M_16 = xor(h1((IDs,ysOld_1)),h((AsNext_3,Xsp))), ~M_17 = h((IDs,h1((IDs,ysOld_1)),AsNext_3,WTs)) at {49}
+
+event SPRejectNeither(h1((IDs,ysOld_1)),AsNext_3) at {53} (goal)
+
+The event SPRejectNeither(h1((IDs,ysOld_1)),AsNext_3) is executed at {53}.
+The event SensorNextLogin(h1((IDs,ysOld_1)),AsNext_3) is executed at {24}.
+A trace has been found.
+RESULT not (event(SPRejectNeither(tc,as)) && event(SensorNextLogin(tc,as))) is false.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query not (event(SPRejectNeither(tc,as)) && event(SensorNextLogin(tc,as))) is false.
+
+--------------------------------------------------------------
+
