@@ -22,7 +22,7 @@ Names follow the pattern `li2024_<scenario>_<variant>`:
 
 ## Files and the results of the paper
 
-Eight of the nine model/output pairs support results reported in the paper (Table IV and Section IV-E). One pair can support several rows of Table IV, since a model holds several queries, so the pairs do not map one-to-one to rows. The pair `li2024_insync_nonce_control` is an extra control that is not reported in the paper: it binds the recovery message to a separate device nonce, whereas the paper's R1 results bind it to the login's As. The last column gives the working name used in the project notes.
+Eight of the original nine model/output pairs support results reported in the paper (Table IV and Section IV-E). One pair can support several rows of Table IV, since a model holds several queries, so the pairs do not map one-to-one to rows. The additional case-(d) pairs are described below. The pair `li2024_insync_nonce_control` is an extra control that is not reported in the paper: it binds the recovery message to a separate device nonce, whereas the paper's R1 results bind it to the login's As. The last column gives the working name used in the project notes.
 
 | Model (`.pv`, output `.out.txt`) | Scenario | Query | Saved result | Bound | Working name |
 |---|---|---|---|---|---|
@@ -37,6 +37,20 @@ Eight of the nine model/output pairs support results reported in the paper (Tabl
 | `li2024_lagging_R1_R2_R3` | lagging device, R1--R3, one remembered As | refused login; stale credential installed; retry, re-issue, server commit, repeated request refused | refusal unreachable; stale install unreachable; retry, re-issue and server commit reachable; repeat refused reachable | 1 recovery episode | `li2024_recovery_rule_R1_R2_R3` (earlier `li2024_strict_repair_v4_oneval`) |
 
 `GUIDE_li2024_lagging_R1_R2_R3.md` explains the last model in detail. The `history` folder keeps two earlier variants of the rule model, which give the same verdicts and are not reported in the paper: `li2024_lagging_R1_R2_R3_separate_q` (a separate request value next to As; working name `li2024_strict_repair_v2`) and `li2024_lagging_R1_R2_R3_multi_As` (several remembered As values; working name `li2024_strict_repair_v3_as`).
+
+## Case (d): delayed old login after a fresh retry (added with V28)
+
+These three model/output pairs test one bounded delivery sequence for a delayed old login, a byte-for-byte retransmission control, and the R1--R3 repair. They are additional to the nine models listed above.
+
+| Model and saved output | Scenario | Result and scope |
+|---|---|---|
+| `case_d/li2024_case_d_late_login_fresh_retry.pv` and `.out.txt` | The attacker delays an old valid login. The device retries with a distinct fresh `As`; the server accepts that retry, then processes the delayed login. | ProVerif finds a trace: the delayed login triggers SR1 and resets both server credential slots, the attacker drops SR1, and the device's next login is refused. A2 verifies `V1` before changing state in this model. |
+| `case_d/li2024_case_d_exact_retransmission_control.pv` and `.out.txt` | The device retransmits the identical M1, including the same `As` and `V1`, in the delivery order encoded in the model. | The Login check ignores the duplicate, SR1 is not issued, and the next login is accepted in this tested order. This is a schedule-specific control. |
+| `case_d/li2024_case_d_R1_R2_R3.pv` and `.out.txt` | The delayed-login sequence is tested with the pending-credential rule and the recovery response bound to its request. | ProVerif reaches the modeled retry, pending-credential installation, proof of possession and server commit. It reports no stale installation and no refusal of that modeled proof login. The model ends at commit. |
+
+The three models use one device and one server with symbolic hash and XOR. They are scripted bounded scenarios. They do not establish the result for every delivery order, concurrent sessions, persistent storage, power failure or rollback. To rerun a model from the repository root while preserving the checked output, use, for example:
+
+    proverif case_d/li2024_case_d_late_login_fresh_retry.pv > case_d/li2024_case_d_late_login_fresh_retry.rerun.out.txt
 
 ## Reading the results
 

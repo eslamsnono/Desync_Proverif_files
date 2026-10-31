@@ -1,0 +1,559 @@
+Process 0 (that is, the initial process):
+{1}new N1: bitstring;
+{2}new R0: bitstring;
+{3}new L0: bitstring;
+(
+    {4}let T1: bitstring = N1 in
+    {5}new As1: bitstring;
+    {6}let As: bitstring = As1 in
+    {7}let M1: bitstring = (As,xor(T1,h((As,X))),h((IDs,T1,As,WT))) in
+    {8}event DeviceRetransmitsSame(T1,As1);
+    {9}out(c, M1);
+    {10}out(c, M1);
+    {11}in(c, Reply1: bitstring);
+    {12}let As_1: bitstring = As1 in
+    {13}let v: bitstring = Reply1 in
+    {14}let v_1: bool = success?(1-proj-2-tuple(v)) in
+    {15}let Vsp: bitstring = (if v_1 then 2-proj-2-tuple(v) else caught-fail) in
+    {16}let Asp: bitstring = (if v_1 then 1-proj-2-tuple(v) else caught-fail) in
+    {17}let SK: bitstring = (if v_1 then h((As_1,Asp,WT)) else caught-fail) in
+    {18}let SSK: bitstring = (if v_1 then h((IDs,IDsp,SK)) else caught-fail) in
+    {19}let TCn: bitstring = (if v_1 then xor(T1,h((SK,Asp))) else caught-fail) in
+    {20}let T2: bitstring = (if v_1 then (if (Vsp = h((WT,IDsp,TCn,Asp,SSK))) then TCn else T1) else fail-any_type) in
+    {21}if (T2 ≠ T1) then
+    {22}event DeviceAcceptsFirst(T1,T2,As1);
+    {23}new As2: bitstring;
+    {24}event DeviceNextLogin(T2,As2);
+    {25}let As_2: bitstring = As2 in
+    {26}out(c, (As_2,xor(T2,h((As_2,X))),h((IDs,T2,As_2,WT))));
+    {27}in(c, Reply2: bitstring);
+    {28}let As_3: bitstring = As2 in
+    {29}let v_2: bitstring = Reply2 in
+    {30}let v_3: bool = success?(1-proj-2-tuple(v_2)) in
+    {31}let Vsp_1: bitstring = (if v_3 then 2-proj-2-tuple(v_2) else caught-fail) in
+    {32}let Asp_1: bitstring = (if v_3 then 1-proj-2-tuple(v_2) else caught-fail) in
+    {33}let SK_1: bitstring = (if v_3 then h((As_3,Asp_1,WT)) else caught-fail) in
+    {34}let SSK_1: bitstring = (if v_3 then h((IDs,IDsp,SK_1)) else caught-fail) in
+    {35}let TCn_1: bitstring = (if v_3 then xor(T2,h((SK_1,Asp_1))) else caught-fail) in
+    {36}let T3: bitstring = (if v_3 then (if (Vsp_1 = h((WT,IDsp,TCn_1,Asp_1,SSK_1))) then TCn_1 else T2) else fail-any_type) in
+    0
+) | (
+    {37}let TCa: bitstring = N1 in
+    {38}let Pa: bitstring = R0 in
+    {39}let La: bitstring = L0 in
+    {40}in(c, (As1_1: bitstring,ETC1: bitstring,V11: bitstring));
+    {41}let D1: bitstring = unxor(ETC1,h((As1_1,X))) in
+    {42}if (D1 = TCa) then
+    {43}if (V11 = h((IDs,TCa,As1_1,WT))) then
+    {44}new Asp1: bitstring;
+    {45}let Asp_2: bitstring = Asp1 in
+    {46}let SK_2: bitstring = h((As1_1,Asp_2,WT)) in
+    {47}let SSK_2: bitstring = h((IDs,IDsp,SK_2)) in
+    {48}let TCn_2: bitstring = xor(TCa,h((SK_2,Asp_2))) in
+    {49}let (TCb: bitstring,Reply1_1: bitstring) = (TCn_2,(Asp_2,h((WT,IDsp,TCn_2,Asp_2,SSK_2)))) in
+    {50}event ServerAcceptsFirst(TCa,TCb,As1_1);
+    {51}out(c, Reply1_1);
+    {52}in(c, M2: bitstring);
+    {53}let (As2_1: bitstring,ETC2: bitstring,V12: bitstring) = M2 in
+    {54}let D2: bitstring = unxor(ETC2,h((As2_1,X))) in
+    {55}if (D2 = TCa) then
+    {56}if (V12 = h((IDs,TCa,As2_1,WT))) then
+    {57}if (V12 = V11) then
+    {58}event ServerIgnoresDuplicate(As2_1);
+    {59}in(c, Mnext: bitstring);
+    {60}let (AsNext: bitstring,ETCNext: bitstring,V1Next: bitstring) = Mnext in
+    {61}let DNext: bitstring = unxor(ETCNext,h((AsNext,X))) in
+    {62}if (DNext = TCb) then
+    {63}if (V1Next = h((IDs,TCb,AsNext,WT))) then
+    (
+        {64}new AspNext: bitstring;
+        {65}let Asp_3: bitstring = AspNext in
+        {66}let SK_3: bitstring = h((AsNext,Asp_3,WT)) in
+        {67}let SSK_3: bitstring = h((IDs,IDsp,SK_3)) in
+        {68}let TCn_3: bitstring = xor(TCb,h((SK_3,Asp_3))) in
+        {69}let (TCc: bitstring,ReplyNext: bitstring) = (TCn_3,(Asp_3,h((WT,IDsp,TCn_3,Asp_3,SSK_3)))) in
+            {70}event ServerAcceptsNext(TCb,TCc,AsNext);
+            {71}out(c, ReplyNext)
+        else
+            {72}new ys: bitstring;
+            {73}let R: bitstring = h1((IDs,ys)) in
+            {74}event SR1Issued(D2,As2_1);
+            {75}out(c, (xor(R,h((WT,X))),h((IDsp,IDs,R,WT)),Resyn))
+    )
+    else
+        {76}if (D2 = TCb) then
+        {77}if (V12 = h((IDs,TCb,As2_1,WT))) then
+        {78}new AspNext_1: bitstring;
+        {79}let Asp_4: bitstring = AspNext_1 in
+        {80}let SK_4: bitstring = h((As2_1,Asp_4,WT)) in
+        {81}let SSK_4: bitstring = h((IDs,IDsp,SK_4)) in
+        {82}let TCn_4: bitstring = xor(TCb,h((SK_4,Asp_4))) in
+        {83}let (TCc_1: bitstring,ReplyNext_1: bitstring) = (TCn_4,(Asp_4,h((WT,IDsp,TCn_4,Asp_4,SSK_4)))) in
+        {84}event ServerAcceptsNext(TCb,TCc_1,As2_1);
+        {85}out(c, ReplyNext_1);
+        {86}in(c, Mold: bitstring);
+        {87}let (AsOld: bitstring,ETCOld: bitstring,V1Old: bitstring) = Mold in
+        {88}let DOld: bitstring = unxor(ETCOld,h((AsOld,X))) in
+        {89}if (DOld = TCc_1) then
+            0
+        else
+            {90}if (DOld = TCb) then
+            (
+                {91}if (V1Old = h((IDs,TCb,AsOld,WT))) then
+                {92}if (La = V1Old) then
+                    {93}event ServerIgnoresDuplicate(AsOld)
+                else
+                    {94}new ysOld: bitstring;
+                    {95}let Rold: bitstring = h1((IDs,ysOld)) in
+                    {96}event SR1Issued(DOld,AsOld);
+                    {97}out(c, (xor(Rold,h((WT,X))),h((IDsp,IDs,Rold,WT)),Resyn))
+            )
+            else
+                {98}event ServerRejectsLateOld(D2,As2_1)
+)
+
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}new N1: bitstring;
+{2}new R0: bitstring;
+{3}new L0: bitstring;
+(
+    {5}new As1: bitstring;
+    {4}let T1: bitstring = N1 in
+    {8}event DeviceRetransmitsSame(T1,As1);
+    {6}let As: bitstring = As1 in
+    {7}let M1: bitstring = (As,xor(T1,h((As,X))),h((IDs,T1,As,WT))) in
+    {9}out(c, M1);
+    {10}out(c, M1);
+    {11}in(c, Reply1: bitstring);
+    {13}let v: bitstring = Reply1 in
+    {14}let v_1: bool = success?(1-proj-2-tuple(v)) in
+    {15}let Vsp: bitstring = (if v_1 then 2-proj-2-tuple(v) else caught-fail) in
+    {16}let Asp: bitstring = (if v_1 then 1-proj-2-tuple(v) else caught-fail) in
+    {12}let As_1: bitstring = As1 in
+    {17}let SK: bitstring = (if v_1 then h((As_1,Asp,WT)) else caught-fail) in
+    {19}let TCn: bitstring = (if v_1 then xor(T1,h((SK,Asp))) else caught-fail) in
+    {18}let SSK: bitstring = (if v_1 then h((IDs,IDsp,SK)) else caught-fail) in
+    {20}let T2: bitstring = (if v_1 then (if (Vsp = h((WT,IDsp,TCn,Asp,SSK))) then TCn else T1) else fail-any_type) in
+    {21}if (T2 ≠ T1) then
+    {22}event DeviceAcceptsFirst(T1,T2,As1);
+    {23}new As2: bitstring;
+    {24}event DeviceNextLogin(T2,As2);
+    {25}let As_2: bitstring = As2 in
+    {26}out(c, (As_2,xor(T2,h((As_2,X))),h((IDs,T2,As_2,WT))));
+    {27}in(c, Reply2: bitstring);
+    {29}let v_2: bitstring = Reply2 in
+    {30}let v_3: bool = success?(1-proj-2-tuple(v_2)) in
+    {31}let Vsp_1: bitstring = (if v_3 then 2-proj-2-tuple(v_2) else caught-fail) in
+    {32}let Asp_1: bitstring = (if v_3 then 1-proj-2-tuple(v_2) else caught-fail) in
+    {28}let As_3: bitstring = As2 in
+    {33}let SK_1: bitstring = (if v_3 then h((As_3,Asp_1,WT)) else caught-fail) in
+    {35}let TCn_1: bitstring = (if v_3 then xor(T2,h((SK_1,Asp_1))) else caught-fail) in
+    {34}let SSK_1: bitstring = (if v_3 then h((IDs,IDsp,SK_1)) else caught-fail) in
+    {36}let T3: bitstring = (if v_3 then (if (Vsp_1 = h((WT,IDsp,TCn_1,Asp_1,SSK_1))) then TCn_1 else T2) else fail-any_type) in
+    0
+) | (
+    {40}in(c, (As1_1: bitstring,ETC1: bitstring,V11: bitstring));
+    {41}let D1: bitstring = unxor(ETC1,h((As1_1,X))) in
+    {37}let TCa: bitstring = N1 in
+    {42}if (D1 = TCa) then
+    {43}if (V11 = h((IDs,TCa,As1_1,WT))) then
+    {44}new Asp1: bitstring;
+    {45}let Asp_2: bitstring = Asp1 in
+    {46}let SK_2: bitstring = h((As1_1,Asp_2,WT)) in
+    {48}let TCn_2: bitstring = xor(TCa,h((SK_2,Asp_2))) in
+    {47}let SSK_2: bitstring = h((IDs,IDsp,SK_2)) in
+    {49}let (TCb: bitstring,Reply1_1: bitstring) = (TCn_2,(Asp_2,h((WT,IDsp,TCn_2,Asp_2,SSK_2)))) in
+    {50}event ServerAcceptsFirst(TCa,TCb,As1_1);
+    {51}out(c, Reply1_1);
+    {52}in(c, M2: bitstring);
+    {53}let (As2_1: bitstring,ETC2: bitstring,V12: bitstring) = M2 in
+    {54}let D2: bitstring = unxor(ETC2,h((As2_1,X))) in
+    {55}if (D2 = TCa) then
+    {56}if (V12 = h((IDs,TCa,As2_1,WT))) then
+    {57}if (V12 = V11) then
+    {58}event ServerIgnoresDuplicate(As2_1);
+    {59}in(c, Mnext: bitstring);
+    {60}let (AsNext: bitstring,ETCNext: bitstring,V1Next: bitstring) = Mnext in
+    {61}let DNext: bitstring = unxor(ETCNext,h((AsNext,X))) in
+    {62}if (DNext = TCb) then
+    {63}if (V1Next = h((IDs,TCb,AsNext,WT))) then
+    (
+        {64}new AspNext: bitstring;
+        {65}let Asp_3: bitstring = AspNext in
+        {66}let SK_3: bitstring = h((AsNext,Asp_3,WT)) in
+        {68}let TCn_3: bitstring = xor(TCb,h((SK_3,Asp_3))) in
+        {67}let SSK_3: bitstring = h((IDs,IDsp,SK_3)) in
+        {69}let (TCc: bitstring,ReplyNext: bitstring) = (TCn_3,(Asp_3,h((WT,IDsp,TCn_3,Asp_3,SSK_3)))) in
+            {70}event ServerAcceptsNext(TCb,TCc,AsNext);
+            {71}out(c, ReplyNext)
+        else
+            {72}new ys: bitstring;
+            {74}event SR1Issued(D2,As2_1);
+            {73}let R: bitstring = h1((IDs,ys)) in
+            {75}out(c, (xor(R,h((WT,X))),h((IDsp,IDs,R,WT)),Resyn))
+    )
+    else
+        {76}if (D2 = TCb) then
+        {77}if (V12 = h((IDs,TCb,As2_1,WT))) then
+        {78}new AspNext_1: bitstring;
+        {79}let Asp_4: bitstring = AspNext_1 in
+        {80}let SK_4: bitstring = h((As2_1,Asp_4,WT)) in
+        {82}let TCn_4: bitstring = xor(TCb,h((SK_4,Asp_4))) in
+        {81}let SSK_4: bitstring = h((IDs,IDsp,SK_4)) in
+        {83}let (TCc_1: bitstring,ReplyNext_1: bitstring) = (TCn_4,(Asp_4,h((WT,IDsp,TCn_4,Asp_4,SSK_4)))) in
+        {84}event ServerAcceptsNext(TCb,TCc_1,As2_1);
+        {85}out(c, ReplyNext_1);
+        {86}in(c, Mold: bitstring);
+        {87}let (AsOld: bitstring,ETCOld: bitstring,V1Old: bitstring) = Mold in
+        {88}let DOld: bitstring = unxor(ETCOld,h((AsOld,X))) in
+        {89}if (DOld = TCc_1) then
+            0
+        else
+            {90}if (DOld = TCb) then
+            (
+                {91}if (V1Old = h((IDs,TCb,AsOld,WT))) then
+                {39}let La: bitstring = L0 in
+                {92}if (La = V1Old) then
+                    {93}event ServerIgnoresDuplicate(AsOld)
+                else
+                    {94}new ysOld: bitstring;
+                    {96}event SR1Issued(DOld,AsOld);
+                    {95}let Rold: bitstring = h1((IDs,ysOld)) in
+                    {97}out(c, (xor(Rold,h((WT,X))),h((IDsp,IDs,Rold,WT)),Resyn))
+            )
+            else
+                {98}event ServerRejectsLateOld(D2,As2_1)
+)
+
+-- Query not (event(DeviceRetransmitsSame(t0,a)) && event(ServerAcceptsFirst(t0,t1,a)) && event(DeviceAcceptsFirst(t0,t1,a)) && event(ServerIgnoresDuplicate(a)) && event(DeviceNextLogin(t1,a2)) && event(ServerAcceptsNext(t1,t2,a2))) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query not (event(DeviceRetransmitsSame(t0,a)) && event(ServerAcceptsFirst(t0,t1,a)) && event(DeviceAcceptsFirst(t0,t1,a)) && event(ServerIgnoresDuplicate(a)) && event(DeviceNextLogin(t1,a2)) && event(ServerAcceptsNext(t1,t2,a2)))
+goal reachable: b-event(@p_act(@occ11[],(Asp1_1,h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[]))))))))) && b-event(@p_act(@occ59[],(As2_2,xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((As2_2,X[]))),h((IDs[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2,WT[]))))) && b-event(@p_act(@occ52[],(As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[]))))) && b-event(@p_act(@occ40[],(As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[]))))) -> event(DeviceRetransmitsSame(N1[],As1[])) && event(ServerAcceptsFirst(N1[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As1[])) && event(DeviceAcceptsFirst(N1[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As1[])) && event(ServerIgnoresDuplicate(As1[])) && event(DeviceNextLogin(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2)) && event(ServerAcceptsNext(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((h((As2_2,AspNext_2,WT[])),AspNext_2))),As2_2))
+Abbreviations:
+Asp1_1 = Asp1[V11 = h((IDs[],N1[],As1[],WT[])),ETC1 = xor(N1[],h((As1[],X[]))),As1_1 = As1[]]
+As2_2 = As2[Reply1 = (Asp1_1,h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[])))))))]
+AspNext_2 = AspNext[Mnext = (As2_2,xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((As2_2,X[]))),h((IDs[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2,WT[]))),M2 = (As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[]))),V11 = h((IDs[],N1[],As1[],WT[])),ETC1 = xor(N1[],h((As1[],X[]))),As1_1 = As1[]]
+
+Derivation:
+Abbreviations:
+Asp1_1 = Asp1[V11 = h((IDs[],N1[],As1[],WT[])),ETC1 = xor(N1[],h((As1[],X[]))),As1_1 = As1[]]
+As2_2 = As2[Reply1 = (Asp1_1,h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[])))))))]
+AspNext_2 = AspNext[Mnext = (As2_2,xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((As2_2,X[]))),h((IDs[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2,WT[]))),M2 = (As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[]))),V11 = h((IDs[],N1[],As1[],WT[])),ETC1 = xor(N1[],h((As1[],X[]))),As1_1 = As1[]]
+
+1. The message (As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[]))) may be sent to the attacker at output {9}.
+attacker((As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[])))).
+
+2. By 1, the attacker may know (As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[]))).
+Using the function 3-proj-3-tuple the attacker may obtain h((IDs[],N1[],As1[],WT[])).
+attacker(h((IDs[],N1[],As1[],WT[]))).
+
+3. By 1, the attacker may know (As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[]))).
+Using the function 2-proj-3-tuple the attacker may obtain xor(N1[],h((As1[],X[]))).
+attacker(xor(N1[],h((As1[],X[])))).
+
+4. By 1, the attacker may know (As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[]))).
+Using the function 1-proj-3-tuple the attacker may obtain As1[].
+attacker(As1[]).
+
+5. By 4, the attacker may know As1[].
+By 3, the attacker may know xor(N1[],h((As1[],X[]))).
+By 2, the attacker may know h((IDs[],N1[],As1[],WT[])).
+Using the function 3-tuple the attacker may obtain (As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[]))).
+attacker((As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[])))).
+
+6. The event @p_act(@occ40[],(As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[])))) records how variables are instantiated at {40}.
+The message (As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[]))) that the attacker may have by 5 may be received at input {40}.
+So the message (Asp1_1,h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[]))))))) may be sent to the attacker at output {51}.
+attacker((Asp1_1,h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[])))))))).
+
+7. By 6, the attacker may know (Asp1_1,h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[]))))))).
+Using the function 2-proj-2-tuple the attacker may obtain h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[])))))).
+attacker(h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[]))))))).
+
+8. By 6, the attacker may know (Asp1_1,h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[]))))))).
+Using the function 1-proj-2-tuple the attacker may obtain Asp1_1.
+attacker(Asp1_1).
+
+9. By 8, the attacker may know Asp1_1.
+By 7, the attacker may know h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[])))))).
+Using the function 2-tuple the attacker may obtain (Asp1_1,h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[]))))))).
+attacker((Asp1_1,h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[])))))))).
+
+10. The event @p_act(@occ11[],(Asp1_1,h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[])))))))) records how variables are instantiated at {11}.
+The message (Asp1_1,h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[]))))))) that the attacker may have by 9 may be received at input {11}.
+So the message (As2_2,xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((As2_2,X[]))),h((IDs[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2,WT[]))) may be sent to the attacker at output {26}.
+attacker((As2_2,xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((As2_2,X[]))),h((IDs[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2,WT[])))).
+
+11. By 10, the attacker may know (As2_2,xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((As2_2,X[]))),h((IDs[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2,WT[]))).
+Using the function 3-proj-3-tuple the attacker may obtain h((IDs[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2,WT[])).
+attacker(h((IDs[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2,WT[]))).
+
+12. By 10, the attacker may know (As2_2,xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((As2_2,X[]))),h((IDs[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2,WT[]))).
+Using the function 2-proj-3-tuple the attacker may obtain xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((As2_2,X[]))).
+attacker(xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((As2_2,X[])))).
+
+13. By 10, the attacker may know (As2_2,xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((As2_2,X[]))),h((IDs[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2,WT[]))).
+Using the function 1-proj-3-tuple the attacker may obtain As2_2.
+attacker(As2_2).
+
+14. By 13, the attacker may know As2_2.
+By 12, the attacker may know xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((As2_2,X[]))).
+By 11, the attacker may know h((IDs[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2,WT[])).
+Using the function 3-tuple the attacker may obtain (As2_2,xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((As2_2,X[]))),h((IDs[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2,WT[]))).
+attacker((As2_2,xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((As2_2,X[]))),h((IDs[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2,WT[])))).
+
+15. The event @p_act(@occ40[],(As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[])))) records how variables are instantiated at {40}.
+The message (As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[]))) that the attacker may have by 5 may be received at input {40}.
+The event @p_act(@occ52[],(As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[])))) records how variables are instantiated at {52}.
+The message (As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[]))) that the attacker may have by 5 may be received at input {52}.
+The event @p_act(@occ59[],(As2_2,xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((As2_2,X[]))),h((IDs[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2,WT[])))) records how variables are instantiated at {59}.
+The message (As2_2,xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((As2_2,X[]))),h((IDs[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2,WT[]))) that the attacker may have by 14 may be received at input {59}.
+So event ServerAcceptsNext(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((h((As2_2,AspNext_2,WT[])),AspNext_2))),As2_2) may be executed at {70}.
+event(ServerAcceptsNext(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((h((As2_2,AspNext_2,WT[])),AspNext_2))),As2_2)).
+
+16. The event @p_act(@occ11[],(Asp1_1,h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[])))))))) records how variables are instantiated at {11}.
+The message (Asp1_1,h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[]))))))) that the attacker may have by 9 may be received at input {11}.
+So event DeviceNextLogin(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2) may be executed at {24}.
+event(DeviceNextLogin(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2)).
+
+17. The event @p_act(@occ40[],(As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[])))) records how variables are instantiated at {40}.
+The message (As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[]))) that the attacker may have by 5 may be received at input {40}.
+The event @p_act(@occ52[],(As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[])))) records how variables are instantiated at {52}.
+The message (As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[]))) that the attacker may have by 5 may be received at input {52}.
+So event ServerIgnoresDuplicate(As1[]) may be executed at {58}.
+event(ServerIgnoresDuplicate(As1[])).
+
+18. The event @p_act(@occ11[],(Asp1_1,h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[])))))))) records how variables are instantiated at {11}.
+The message (Asp1_1,h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[]))))))) that the attacker may have by 9 may be received at input {11}.
+So event DeviceAcceptsFirst(N1[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As1[]) may be executed at {22}.
+event(DeviceAcceptsFirst(N1[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As1[])).
+
+19. The event @p_act(@occ40[],(As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[])))) records how variables are instantiated at {40}.
+The message (As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[]))) that the attacker may have by 5 may be received at input {40}.
+So event ServerAcceptsFirst(N1[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As1[]) may be executed at {50}.
+event(ServerAcceptsFirst(N1[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As1[])).
+
+20. Event DeviceRetransmitsSame(N1[],As1[]) may be executed at {8}.
+event(DeviceRetransmitsSame(N1[],As1[])).
+
+21. By 20, event(DeviceRetransmitsSame(N1[],As1[])).
+By 19, event(ServerAcceptsFirst(N1[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As1[])).
+By 18, event(DeviceAcceptsFirst(N1[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As1[])).
+By 17, event(ServerIgnoresDuplicate(As1[])).
+By 16, event(DeviceNextLogin(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2)).
+By 15, event(ServerAcceptsNext(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((h((As2_2,AspNext_2,WT[])),AspNext_2))),As2_2)).
+The goals are reached, combined in the following fact:
+event(DeviceRetransmitsSame(N1[],As1[])) && event(ServerAcceptsFirst(N1[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As1[])) && event(DeviceAcceptsFirst(N1[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As1[])) && event(ServerIgnoresDuplicate(As1[])) && event(DeviceNextLogin(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2)) && event(ServerAcceptsNext(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((h((As2_2,AspNext_2,WT[])),AspNext_2))),As2_2)).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+new N1: bitstring creating N1_1 at {1}
+
+new R0: bitstring creating R0_1 at {2}
+
+new L0: bitstring creating L0_1 at {3}
+
+new As1: bitstring creating As1_2 at {5}
+
+event DeviceRetransmitsSame(N1_1,As1_2) at {8} (goal)
+
+out(c, (~M,~M_1,~M_2)) with ~M = As1_2, ~M_1 = xor(N1_1,h((As1_2,X))), ~M_2 = h((IDs,N1_1,As1_2,WT)) at {9}
+
+out(c, (~M_3,~M_4,~M_5)) with ~M_3 = As1_2, ~M_4 = xor(N1_1,h((As1_2,X))), ~M_5 = h((IDs,N1_1,As1_2,WT)) at {10}
+
+in(c, (~M,~M_1,~M_2)) with ~M = As1_2, ~M_1 = xor(N1_1,h((As1_2,X))), ~M_2 = h((IDs,N1_1,As1_2,WT)) at {40}
+
+new Asp1: bitstring creating Asp1_2 at {44}
+
+event ServerAcceptsFirst(N1_1,xor(N1_1,h((h((As1_2,Asp1_2,WT)),Asp1_2))),As1_2) at {50} (goal)
+
+out(c, (~M_6,~M_7)) with ~M_6 = Asp1_2, ~M_7 = h((WT,IDsp,xor(N1_1,h((h((As1_2,Asp1_2,WT)),Asp1_2))),Asp1_2,h((IDs,IDsp,h((As1_2,Asp1_2,WT)))))) at {51}
+
+in(c, (~M_6,~M_7)) with ~M_6 = Asp1_2, ~M_7 = h((WT,IDsp,xor(N1_1,h((h((As1_2,Asp1_2,WT)),Asp1_2))),Asp1_2,h((IDs,IDsp,h((As1_2,Asp1_2,WT)))))) at {11}
+
+event DeviceAcceptsFirst(N1_1,xor(N1_1,h((h((As1_2,Asp1_2,WT)),Asp1_2))),As1_2) at {22} (goal)
+
+new As2: bitstring creating As2_3 at {23}
+
+event DeviceNextLogin(xor(N1_1,h((h((As1_2,Asp1_2,WT)),Asp1_2))),As2_3) at {24} (goal)
+
+out(c, (~M_8,~M_9,~M_10)) with ~M_8 = As2_3, ~M_9 = xor(xor(N1_1,h((h((As1_2,Asp1_2,WT)),Asp1_2))),h((As2_3,X))), ~M_10 = h((IDs,xor(N1_1,h((h((As1_2,Asp1_2,WT)),Asp1_2))),As2_3,WT)) at {26}
+
+in(c, (~M,~M_1,~M_2)) with ~M = As1_2, ~M_1 = xor(N1_1,h((As1_2,X))), ~M_2 = h((IDs,N1_1,As1_2,WT)) at {52}
+
+event ServerIgnoresDuplicate(As1_2) at {58} (goal)
+
+in(c, (~M_8,~M_9,~M_10)) with ~M_8 = As2_3, ~M_9 = xor(xor(N1_1,h((h((As1_2,Asp1_2,WT)),Asp1_2))),h((As2_3,X))), ~M_10 = h((IDs,xor(N1_1,h((h((As1_2,Asp1_2,WT)),Asp1_2))),As2_3,WT)) at {59}
+
+new AspNext: bitstring creating AspNext_3 at {64}
+
+event ServerAcceptsNext(xor(N1_1,h((h((As1_2,Asp1_2,WT)),Asp1_2))),xor(xor(N1_1,h((h((As1_2,Asp1_2,WT)),Asp1_2))),h((h((As2_3,AspNext_3,WT)),AspNext_3))),As2_3) at {70} (goal)
+
+The event DeviceRetransmitsSame(N1_1,As1_2) is executed at {8}.
+The event ServerAcceptsFirst(N1_1,xor(N1_1,h((h((As1_2,Asp1_2,WT)),Asp1_2))),As1_2) is executed at {50}.
+The event DeviceAcceptsFirst(N1_1,xor(N1_1,h((h((As1_2,Asp1_2,WT)),Asp1_2))),As1_2) is executed at {22}.
+The event ServerIgnoresDuplicate(As1_2) is executed at {58}.
+The event DeviceNextLogin(xor(N1_1,h((h((As1_2,Asp1_2,WT)),Asp1_2))),As2_3) is executed at {24}.
+The event ServerAcceptsNext(xor(N1_1,h((h((As1_2,Asp1_2,WT)),Asp1_2))),xor(xor(N1_1,h((h((As1_2,Asp1_2,WT)),Asp1_2))),h((h((As2_3,AspNext_3,WT)),AspNext_3))),As2_3) is executed at {70}.
+A trace has been found.
+RESULT not (event(DeviceRetransmitsSame(t0,a)) && event(ServerAcceptsFirst(t0,t1,a)) && event(DeviceAcceptsFirst(t0,t1,a)) && event(ServerIgnoresDuplicate(a)) && event(DeviceNextLogin(t1,a2)) && event(ServerAcceptsNext(t1,t2,a2))) is false.
+-- Query not event(SR1Issued(t,a)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query not event(SR1Issued(t,a))
+RESULT not event(SR1Issued(t,a)) is true.
+-- Query not event(ServerAcceptsNext(t1,t2,a2)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query not event(ServerAcceptsNext(t1,t2,a2))
+goal reachable: b-event(@p_act(@occ11_2[],(Asp1_1,h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[]))))))))) && b-event(@p_act(@occ59_2[],(As2_2,xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((As2_2,X[]))),h((IDs[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2,WT[]))))) && b-event(@p_act(@occ52_2[],(As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[]))))) && b-event(@p_act(@occ40_2[],(As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[]))))) -> event(ServerAcceptsNext(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((h((As2_2,AspNext_2,WT[])),AspNext_2))),As2_2))
+Abbreviations:
+Asp1_1 = Asp1[V11 = h((IDs[],N1[],As1[],WT[])),ETC1 = xor(N1[],h((As1[],X[]))),As1_1 = As1[]]
+As2_2 = As2[Reply1 = (Asp1_1,h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[])))))))]
+AspNext_2 = AspNext[Mnext = (As2_2,xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((As2_2,X[]))),h((IDs[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2,WT[]))),M2 = (As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[]))),V11 = h((IDs[],N1[],As1[],WT[])),ETC1 = xor(N1[],h((As1[],X[]))),As1_1 = As1[]]
+
+Derivation:
+Abbreviations:
+Asp1_1 = Asp1[V11 = h((IDs[],N1[],As1[],WT[])),ETC1 = xor(N1[],h((As1[],X[]))),As1_1 = As1[]]
+As2_2 = As2[Reply1 = (Asp1_1,h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[])))))))]
+AspNext_2 = AspNext[Mnext = (As2_2,xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((As2_2,X[]))),h((IDs[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2,WT[]))),M2 = (As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[]))),V11 = h((IDs[],N1[],As1[],WT[])),ETC1 = xor(N1[],h((As1[],X[]))),As1_1 = As1[]]
+
+1. The message (As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[]))) may be sent to the attacker at output {9}.
+attacker((As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[])))).
+
+2. By 1, the attacker may know (As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[]))).
+Using the function 3-proj-3-tuple the attacker may obtain h((IDs[],N1[],As1[],WT[])).
+attacker(h((IDs[],N1[],As1[],WT[]))).
+
+3. By 1, the attacker may know (As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[]))).
+Using the function 2-proj-3-tuple the attacker may obtain xor(N1[],h((As1[],X[]))).
+attacker(xor(N1[],h((As1[],X[])))).
+
+4. By 1, the attacker may know (As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[]))).
+Using the function 1-proj-3-tuple the attacker may obtain As1[].
+attacker(As1[]).
+
+5. By 4, the attacker may know As1[].
+By 3, the attacker may know xor(N1[],h((As1[],X[]))).
+By 2, the attacker may know h((IDs[],N1[],As1[],WT[])).
+Using the function 3-tuple the attacker may obtain (As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[]))).
+attacker((As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[])))).
+
+6. The event @p_act(@occ40_2[],(As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[])))) records how variables are instantiated at {40}.
+The message (As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[]))) that the attacker may have by 5 may be received at input {40}.
+So the message (Asp1_1,h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[]))))))) may be sent to the attacker at output {51}.
+attacker((Asp1_1,h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[])))))))).
+
+7. By 6, the attacker may know (Asp1_1,h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[]))))))).
+Using the function 2-proj-2-tuple the attacker may obtain h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[])))))).
+attacker(h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[]))))))).
+
+8. By 6, the attacker may know (Asp1_1,h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[]))))))).
+Using the function 1-proj-2-tuple the attacker may obtain Asp1_1.
+attacker(Asp1_1).
+
+9. By 8, the attacker may know Asp1_1.
+By 7, the attacker may know h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[])))))).
+Using the function 2-tuple the attacker may obtain (Asp1_1,h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[]))))))).
+attacker((Asp1_1,h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[])))))))).
+
+10. The event @p_act(@occ11_2[],(Asp1_1,h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[])))))))) records how variables are instantiated at {11}.
+The message (Asp1_1,h((WT[],IDsp[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),Asp1_1,h((IDs[],IDsp[],h((As1[],Asp1_1,WT[]))))))) that the attacker may have by 9 may be received at input {11}.
+So the message (As2_2,xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((As2_2,X[]))),h((IDs[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2,WT[]))) may be sent to the attacker at output {26}.
+attacker((As2_2,xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((As2_2,X[]))),h((IDs[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2,WT[])))).
+
+11. By 10, the attacker may know (As2_2,xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((As2_2,X[]))),h((IDs[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2,WT[]))).
+Using the function 3-proj-3-tuple the attacker may obtain h((IDs[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2,WT[])).
+attacker(h((IDs[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2,WT[]))).
+
+12. By 10, the attacker may know (As2_2,xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((As2_2,X[]))),h((IDs[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2,WT[]))).
+Using the function 2-proj-3-tuple the attacker may obtain xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((As2_2,X[]))).
+attacker(xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((As2_2,X[])))).
+
+13. By 10, the attacker may know (As2_2,xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((As2_2,X[]))),h((IDs[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2,WT[]))).
+Using the function 1-proj-3-tuple the attacker may obtain As2_2.
+attacker(As2_2).
+
+14. By 13, the attacker may know As2_2.
+By 12, the attacker may know xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((As2_2,X[]))).
+By 11, the attacker may know h((IDs[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2,WT[])).
+Using the function 3-tuple the attacker may obtain (As2_2,xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((As2_2,X[]))),h((IDs[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2,WT[]))).
+attacker((As2_2,xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((As2_2,X[]))),h((IDs[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2,WT[])))).
+
+15. The event @p_act(@occ40_2[],(As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[])))) records how variables are instantiated at {40}.
+The message (As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[]))) that the attacker may have by 5 may be received at input {40}.
+The event @p_act(@occ52_2[],(As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[])))) records how variables are instantiated at {52}.
+The message (As1[],xor(N1[],h((As1[],X[]))),h((IDs[],N1[],As1[],WT[]))) that the attacker may have by 5 may be received at input {52}.
+The event @p_act(@occ59_2[],(As2_2,xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((As2_2,X[]))),h((IDs[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2,WT[])))) records how variables are instantiated at {59}.
+The message (As2_2,xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((As2_2,X[]))),h((IDs[],xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),As2_2,WT[]))) that the attacker may have by 14 may be received at input {59}.
+So event ServerAcceptsNext(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((h((As2_2,AspNext_2,WT[])),AspNext_2))),As2_2) may be executed at {70}.
+event(ServerAcceptsNext(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((h((As2_2,AspNext_2,WT[])),AspNext_2))),As2_2)).
+
+16. By 15, event(ServerAcceptsNext(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((h((As2_2,AspNext_2,WT[])),AspNext_2))),As2_2)).
+The goal is reached, represented in the following fact:
+event(ServerAcceptsNext(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),xor(xor(N1[],h((h((As1[],Asp1_1,WT[])),Asp1_1))),h((h((As2_2,AspNext_2,WT[])),AspNext_2))),As2_2)).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+new N1: bitstring creating N1_1 at {1}
+
+new R0: bitstring creating R0_1 at {2}
+
+new L0: bitstring creating L0_1 at {3}
+
+new As1: bitstring creating As1_2 at {5}
+
+event DeviceRetransmitsSame(N1_1,As1_2) at {8}
+
+out(c, (~M,~M_1,~M_2)) with ~M = As1_2, ~M_1 = xor(N1_1,h((As1_2,X))), ~M_2 = h((IDs,N1_1,As1_2,WT)) at {9}
+
+out(c, (~M_3,~M_4,~M_5)) with ~M_3 = As1_2, ~M_4 = xor(N1_1,h((As1_2,X))), ~M_5 = h((IDs,N1_1,As1_2,WT)) at {10}
+
+in(c, (~M,~M_1,~M_2)) with ~M = As1_2, ~M_1 = xor(N1_1,h((As1_2,X))), ~M_2 = h((IDs,N1_1,As1_2,WT)) at {40}
+
+new Asp1: bitstring creating Asp1_2 at {44}
+
+event ServerAcceptsFirst(N1_1,xor(N1_1,h((h((As1_2,Asp1_2,WT)),Asp1_2))),As1_2) at {50}
+
+out(c, (~M_6,~M_7)) with ~M_6 = Asp1_2, ~M_7 = h((WT,IDsp,xor(N1_1,h((h((As1_2,Asp1_2,WT)),Asp1_2))),Asp1_2,h((IDs,IDsp,h((As1_2,Asp1_2,WT)))))) at {51}
+
+in(c, (~M_6,~M_7)) with ~M_6 = Asp1_2, ~M_7 = h((WT,IDsp,xor(N1_1,h((h((As1_2,Asp1_2,WT)),Asp1_2))),Asp1_2,h((IDs,IDsp,h((As1_2,Asp1_2,WT)))))) at {11}
+
+event DeviceAcceptsFirst(N1_1,xor(N1_1,h((h((As1_2,Asp1_2,WT)),Asp1_2))),As1_2) at {22}
+
+new As2: bitstring creating As2_3 at {23}
+
+event DeviceNextLogin(xor(N1_1,h((h((As1_2,Asp1_2,WT)),Asp1_2))),As2_3) at {24}
+
+out(c, (~M_8,~M_9,~M_10)) with ~M_8 = As2_3, ~M_9 = xor(xor(N1_1,h((h((As1_2,Asp1_2,WT)),Asp1_2))),h((As2_3,X))), ~M_10 = h((IDs,xor(N1_1,h((h((As1_2,Asp1_2,WT)),Asp1_2))),As2_3,WT)) at {26}
+
+in(c, (~M,~M_1,~M_2)) with ~M = As1_2, ~M_1 = xor(N1_1,h((As1_2,X))), ~M_2 = h((IDs,N1_1,As1_2,WT)) at {52}
+
+event ServerIgnoresDuplicate(As1_2) at {58}
+
+in(c, (~M_8,~M_9,~M_10)) with ~M_8 = As2_3, ~M_9 = xor(xor(N1_1,h((h((As1_2,Asp1_2,WT)),Asp1_2))),h((As2_3,X))), ~M_10 = h((IDs,xor(N1_1,h((h((As1_2,Asp1_2,WT)),Asp1_2))),As2_3,WT)) at {59}
+
+new AspNext: bitstring creating AspNext_3 at {64}
+
+event ServerAcceptsNext(xor(N1_1,h((h((As1_2,Asp1_2,WT)),Asp1_2))),xor(xor(N1_1,h((h((As1_2,Asp1_2,WT)),Asp1_2))),h((h((As2_3,AspNext_3,WT)),AspNext_3))),As2_3) at {70} (goal)
+
+The event ServerAcceptsNext(xor(N1_1,h((h((As1_2,Asp1_2,WT)),Asp1_2))),xor(xor(N1_1,h((h((As1_2,Asp1_2,WT)),Asp1_2))),h((h((As2_3,AspNext_3,WT)),AspNext_3))),As2_3) is executed at {70}.
+A trace has been found.
+RESULT not event(ServerAcceptsNext(t1,t2,a2)) is false.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query not (event(DeviceRetransmitsSame(t0,a)) && event(ServerAcceptsFirst(t0,t1,a)) && event(DeviceAcceptsFirst(t0,t1,a)) && event(ServerIgnoresDuplicate(a)) && event(DeviceNextLogin(t1,a2)) && event(ServerAcceptsNext(t1,t2,a2))) is false.
+
+Query not event(SR1Issued(t,a)) is true.
+
+Query not event(ServerAcceptsNext(t1,t2,a2)) is false.
+
+--------------------------------------------------------------
+

@@ -1,0 +1,136 @@
+(* Exact-retransmission control for Li et al. 2024, Sections 3.3-3.4.
+   A1 is retransmitted byte-for-byte (same As, encrypted credential, V1).
+   Bounded two-login model:
+   - server processes one copy and returns a normal reply;
+   - the duplicate is delivered after the first success and before the
+     device sends its next login;
+   - A2's Login check is included in the previous-credential branch.
+   ProVerif models one sensor/server, symbolic hash and XOR, no persistent
+   storage or crashes. This is a schedule-specific control, not a general
+   security proof. *)
+set preciseActions = true.
+free c: channel.
+fun h(bitstring): bitstring.
+fun h1(bitstring): bitstring.
+fun xor(bitstring, bitstring): bitstring.
+reduc forall m: bitstring, k: bitstring; unxor(xor(m, k), k) = m.
+free IDs, IDsp, Resyn, nothing: bitstring.
+free WT: bitstring [private].
+free X: bitstring [private].
+
+event DeviceRetransmitsSame(bitstring, bitstring).
+event DeviceAcceptsFirst(bitstring, bitstring, bitstring).
+event DeviceNextLogin(bitstring, bitstring).
+event ServerAcceptsFirst(bitstring, bitstring, bitstring).
+event ServerIgnoresDuplicate(bitstring).
+event ServerAcceptsNext(bitstring, bitstring, bitstring).
+event ServerRejectsLateOld(bitstring, bitstring).
+event SR1Issued(bitstring, bitstring).
+
+query t0: bitstring, a: bitstring, t1: bitstring, a2: bitstring, t2: bitstring;
+  event(DeviceRetransmitsSame(t0,a)) &&
+  event(ServerAcceptsFirst(t0,t1,a)) &&
+  event(DeviceAcceptsFirst(t0,t1,a)) &&
+  event(ServerIgnoresDuplicate(a)) &&
+  event(DeviceNextLogin(t1,a2)) &&
+  event(ServerAcceptsNext(t1,t2,a2)).
+query t: bitstring, a: bitstring; event(SR1Issued(t,a)).
+query t0: bitstring, a: bitstring, t1: bitstring, a2: bitstring, t2: bitstring;
+  event(ServerAcceptsNext(t1,t2,a2)).
+
+letfun mkA1(TC: bitstring, As: bitstring) =
+  (As, xor(TC, h((As,X))), h((IDs,TC,As,WT))).
+letfun acceptNormal(TC: bitstring, As: bitstring, m: bitstring) =
+  let (Asp: bitstring, Vsp: bitstring) = m in
+    let SK = h((As,Asp,WT)) in
+    let SSK = h((IDs,IDsp,SK)) in
+    let TCn = xor(TC,h((SK,Asp))) in
+    if Vsp = h((WT,IDsp,TCn,Asp,SSK)) then TCn else TC
+  else TC.
+letfun mkReply(TC: bitstring, As: bitstring, Asp: bitstring) =
+  let SK = h((As,Asp,WT)) in
+  let SSK = h((IDs,IDsp,SK)) in
+  let TCn = xor(TC,h((SK,Asp))) in
+  (TCn,(Asp,h((WT,IDsp,TCn,Asp,SSK)))).
+
+let Sensor(T1: bitstring) =
+  new As1: bitstring;
+  let M1 = mkA1(T1,As1) in
+  event DeviceRetransmitsSame(T1,As1);
+  out(c,M1);
+  out(c,M1);
+  in(c,Reply1: bitstring);
+  let T2 = acceptNormal(T1,As1,Reply1) in
+  if T2 <> T1 then
+    event DeviceAcceptsFirst(T1,T2,As1);
+    new As2: bitstring;
+    event DeviceNextLogin(T2,As2);
+    out(c,mkA1(T2,As2));
+    in(c,Reply2: bitstring);
+    let T3 = acceptNormal(T2,As2,Reply2) in 0.
+
+let Server(TCa: bitstring, Pa: bitstring, La: bitstring) =
+  in(c,(As1: bitstring,ETC1: bitstring,V11: bitstring));
+  let D1 = unxor(ETC1,h((As1,X))) in
+  if D1 = TCa then
+    if V11 = h((IDs,TCa,As1,WT)) then
+      new Asp1: bitstring;
+      let (TCb: bitstring,Reply1: bitstring) = mkReply(TCa,As1,Asp1) in
+      event ServerAcceptsFirst(TCa,TCb,As1);
+      out(c,Reply1);
+      in(c,M2: bitstring);
+      let (As2: bitstring,ETC2: bitstring,V12: bitstring) = M2 in
+      let D2 = unxor(ETC2,h((As2,X))) in
+      if D2 = TCa then
+        if V12 = h((IDs,TCa,As2,WT)) then
+          if V12 = V11 then
+            event ServerIgnoresDuplicate(As2);
+            in(c,Mnext: bitstring);
+            let (AsNext: bitstring,ETCNext: bitstring,V1Next: bitstring) = Mnext in
+            let DNext = unxor(ETCNext,h((AsNext,X))) in
+            if DNext = TCb then
+              if V1Next = h((IDs,TCb,AsNext,WT)) then
+                new AspNext: bitstring;
+                let (TCc: bitstring,ReplyNext: bitstring) = mkReply(TCb,AsNext,AspNext) in
+                event ServerAcceptsNext(TCb,TCc,AsNext);
+                out(c,ReplyNext)
+          else
+            new ys: bitstring;
+            let R = h1((IDs,ys)) in
+            event SR1Issued(D2,As2);
+            out(c,(xor(R,h((WT,X))),h((IDsp,IDs,R,WT)),Resyn))
+        else 0
+      else if D2 = TCb then
+        if V12 = h((IDs,TCb,As2,WT)) then
+          new AspNext: bitstring;
+          let (TCc: bitstring,ReplyNext: bitstring) = mkReply(TCb,As2,AspNext) in
+          event ServerAcceptsNext(TCb,TCc,As2);
+          out(c,ReplyNext);
+          (* The old duplicate is now older than the retained previous value. *)
+          in(c,Mold: bitstring);
+          let (AsOld: bitstring,ETCOld: bitstring,V1Old: bitstring) = Mold in
+          let DOld = unxor(ETCOld,h((AsOld,X))) in
+          if DOld = TCc then 0
+          else if DOld = TCb then
+            if V1Old = h((IDs,TCb,AsOld,WT)) then
+              if La = V1Old then event ServerIgnoresDuplicate(AsOld)
+              else
+                new ysOld: bitstring;
+                let Rold = h1((IDs,ysOld)) in
+                event SR1Issued(DOld,AsOld);
+                out(c,(xor(Rold,h((WT,X))),h((IDsp,IDs,Rold,WT)),Resyn))
+          else event ServerRejectsLateOld(DOld,AsOld)
+        else 0
+      else event ServerRejectsLateOld(D2,As2)
+    else 0
+  else 0.
+
+process
+  new N1: bitstring;
+  new R0: bitstring;
+  new L0: bitstring;
+  (Sensor(N1) | Server(N1,R0,L0))
+
+
+
+

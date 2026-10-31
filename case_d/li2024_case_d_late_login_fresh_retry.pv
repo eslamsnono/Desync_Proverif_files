@@ -1,0 +1,118 @@
+(* Case (d): a delayed old login after a fresh retry. This is a bounded model.
+   Assumptions: the first login is held by the network; after timeout, the
+   device starts a new login with a fresh As; the server processes that retry
+   and the device receives its normal reply; then the held first login is
+   delivered late. The attacker drops the recovery message SR1 and delivers
+   the device's next login. A2 is modeled conservatively: V1 is checked before
+   state changes. The late login itself is valid.
+
+   Starting state: device holds N1; server holds TC=N1, prTC=R0 and Login=L0.
+   N1 is the credential after a successful login; R0 is its previous value.
+   ProVerif models one device and one server, symbolic hash/XOR, no storage. *)
+set preciseActions = true.
+free c: channel.
+fun h(bitstring): bitstring.
+fun h1(bitstring): bitstring.
+fun xor(bitstring, bitstring): bitstring.
+reduc forall m: bitstring, k: bitstring; unxor(xor(m, k), k) = m.
+free IDs, IDsp, Resyn, nothing: bitstring.
+free WT: bitstring [private].
+free X: bitstring [private].
+event DeviceFirstLogin(bitstring, bitstring).
+event DeviceFreshRetry(bitstring, bitstring).
+event DeviceRetryAccepted(bitstring, bitstring).
+event ServerAcceptsFreshRetry(bitstring, bitstring, bitstring).
+event DeviceNextLogin(bitstring, bitstring).
+event LateOldLoginTriggersSR1(bitstring, bitstring).
+event SPRejectNeither(bitstring, bitstring).
+query t0: bitstring, asOld: bitstring, asRetry: bitstring,
+      t2: bitstring, asNext: bitstring;
+  event(DeviceFirstLogin(t0, asOld)) &&
+  event(DeviceFreshRetry(t0, asRetry)) && asOld <> asRetry &&
+  event(ServerAcceptsFreshRetry(t0, t2, asRetry)) &&
+  event(DeviceRetryAccepted(t0, t2)) &&
+  event(LateOldLoginTriggersSR1(t0, asOld)) &&
+  event(DeviceNextLogin(t2, asNext)) &&
+  event(SPRejectNeither(t2, asNext)).
+letfun mkA1(TC: bitstring, As: bitstring) =
+  (As, xor(TC, h((As, X))), h((IDs, TC, As, WT))).
+letfun acceptNormal(TC: bitstring, As: bitstring, m: bitstring) =
+  let (Asp: bitstring, Vsp: bitstring) = m in
+    let SK = h((As, Asp, WT)) in
+    let SSK = h((IDs, IDsp, SK)) in
+    let TCn = xor(TC, h((SK, Asp))) in
+    if Vsp = h((WT, IDsp, TCn, Asp, SSK)) then TCn else TC
+  else TC.
+(* Verify-first A2/A3. For a current credential, return the next credential,
+   updated server state, and normal reply. The previous-credential branch is
+   included to match A2, although the first message in this scenario is current. *)
+letfun spStep(TC: bitstring, prTC: bitstring, L: bitstring,
+              As: bitstring, ETC: bitstring, V1: bitstring,
+              Asp: bitstring, ys: bitstring) =
+  let D = unxor(ETC, h((As, X))) in
+  ( if D = TC then
+      if V1 = h((IDs, TC, As, WT)) then
+        let SK = h((As, Asp, WT)) in
+        let SSK = h((IDs, IDsp, SK)) in
+        let TCn = xor(TC, h((SK, Asp))) in
+        (TCn, TC, V1, (Asp, h((WT, IDsp, TCn, Asp, SSK))))
+      else (TC, prTC, L, nothing)
+    else if D = prTC then
+      if V1 = h((IDs, prTC, As, WT)) then
+        if L = V1 then (TC, prTC, L, nothing)
+        else
+          let R = h1((IDs, ys)) in
+          (R, R, V1, (xor(R, h((WT, X))), h((IDsp, IDs, R, WT)), Resyn))
+    else (TC, prTC, L, nothing) ).
+let Sensor(T1: bitstring) =
+  new AsOld: bitstring;
+  event DeviceFirstLogin(T1, AsOld);
+  out(c, mkA1(T1, AsOld));
+  (* Timeout/retry is an explicit assumption: this is a new login with fresh As. *)
+  new AsRetry: bitstring;
+  event DeviceFreshRetry(T1, AsRetry);
+  out(c, mkA1(T1, AsRetry));
+  in(c, replyRetry: bitstring);
+  let T2 = acceptNormal(T1, AsRetry, replyRetry) in
+  if T2 <> T1 then
+    event DeviceRetryAccepted(T1, T2);
+    new AsNext: bitstring;
+    event DeviceNextLogin(T2, AsNext);
+    out(c, mkA1(T2, AsNext)).
+let Server(TCa: bitstring, Pa: bitstring, La: bitstring) =
+  (* The attacker delivers the fresh retry first. *)
+  in(c, (AsRetry: bitstring, ETCRetry: bitstring, V1Retry: bitstring));
+  new AspRetry: bitstring;
+  new ysRetry: bitstring;
+  let (TCb: bitstring, Pb: bitstring, Lb: bitstring, reply: bitstring) =
+      spStep(TCa, Pa, La, AsRetry, ETCRetry, V1Retry, AspRetry, ysRetry) in
+  if TCb <> TCa then event ServerAcceptsFreshRetry(TCa, TCb, AsRetry);
+  out(c, reply);
+  (* The attacker now delivers the previously held, valid first login. *)
+  in(c, (AsOld: bitstring, ETCOld: bitstring, V1Old: bitstring));
+  let DOld = unxor(ETCOld, h((AsOld, X))) in
+  if DOld = Pb then
+    if V1Old = h((IDs, DOld, AsOld, WT)) then
+      if Lb = V1Old then 0
+      else
+        new ysOld: bitstring;
+        let R = h1((IDs, ysOld)) in
+        event LateOldLoginTriggersSR1(DOld, AsOld);
+        (* SR1 is sent but the attacker drops it. *)
+        out(c, (xor(R, h((WT, X))), h((IDsp, IDs, R, WT)), Resyn));
+        (* Deliver the device's next login after its delayed normal reply. *)
+        in(c, (AsNext: bitstring, ETCNext: bitstring, V1Next: bitstring));
+        let DNext = unxor(ETCNext, h((AsNext, X))) in
+        if DNext = R then 0 else event SPRejectNeither(DNext, AsNext)
+    else 0
+  else 0.
+process
+  new N1: bitstring;
+  new R0: bitstring;
+  new L0: bitstring;
+  ( Sensor(N1) | Server(N1, R0, L0) )
+
+
+
+
+

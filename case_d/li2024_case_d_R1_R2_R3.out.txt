@@ -1,0 +1,693 @@
+Process 0 (that is, the initial process):
+{1}new T1: bitstring;
+{2}new R0: bitstring;
+{3}new L0: bitstring;
+(
+    {4}let T1_1: bitstring = T1 in
+    {5}new AsOld: bitstring;
+    {6}event DeviceOldRequest(T1_1,AsOld);
+    {7}let As: bitstring = AsOld in
+    {8}out(c, (As,xor(T1_1,h((As,X))),h((IDs,T1_1,As,WT))));
+    {9}new AsRetry: bitstring;
+    {10}event DeviceFreshRetry(T1_1,AsRetry);
+    {11}let As_1: bitstring = AsRetry in
+    {12}out(c, (As_1,xor(T1_1,h((As_1,X))),h((IDs,T1_1,As_1,WT))));
+    {13}in(c, ReplyRetry: bitstring);
+    {14}let As_2: bitstring = AsRetry in
+    {15}let v: bitstring = ReplyRetry in
+    {16}let v_1: bool = success?(1-proj-3-tuple(v)) in
+    {17}let Vsp: bitstring = (if v_1 then 3-proj-3-tuple(v) else caught-fail) in
+    {18}let Asp: bitstring = (if v_1 then 2-proj-3-tuple(v) else caught-fail) in
+    {19}let Tag: bitstring = (if v_1 then 1-proj-3-tuple(v) else caught-fail) in
+    {20}let v_2: bool = (if v_1 then catch-fail((Tag = Normal)) else caught-fail) in
+    {21}let SK: bitstring = (if v_2 then h((As_2,Asp,WT)) else caught-fail) in
+    {22}let SSK: bitstring = (if v_2 then h((IDs,IDsp,SK)) else caught-fail) in
+    {23}let TCn: bitstring = (if v_2 then xor(T1_1,h((SK,Asp))) else caught-fail) in
+    {24}let T2: bitstring = (if v_1 then (if undo-catch-fail(v_2) then (if (Vsp = h((WT,IDsp,TCn,Asp,SSK))) then TCn else T1_1) else fail-any_type) else fail-any_type) in
+    {25}if (T2 ≠ T1_1) then
+    {26}event DeviceAcceptsFreshRetry(T1_1,T2,AsRetry);
+    {27}new AsNext: bitstring;
+    {28}event DeviceNextLogin(T2,AsNext);
+    {29}let As_3: bitstring = AsNext in
+    {30}out(c, (As_3,xor(T2,h((As_3,X))),h((IDs,T2,As_3,WT))));
+    {31}in(c, StaleResponse: bitstring);
+    {32}let (TagOld: bitstring,MTC_Old: bitstring,MV_Old: bitstring) = StaleResponse in
+    {33}if (TagOld = Resyn) then
+    {34}let CandOld: bitstring = unxor(MTC_Old,h((WT,X))) in
+    {35}if (MV_Old = h((IDsp,IDs,CandOld,WT,AsNext))) then
+        {36}event DeviceInstallsStaleCredential(CandOld,AsNext)
+    else
+        {37}event DeviceRejectsStaleResponse(CandOld,AsOld,AsNext);
+        {38}new AsAgain: bitstring;
+        {39}event DeviceRetriesAfterStale(T2,AsAgain);
+        {40}let As_4: bitstring = AsAgain in
+        {41}out(c, (As_4,xor(T2,h((As_4,X))),h((IDs,T2,As_4,WT))));
+        {42}in(c, RetryResponse: bitstring);
+        {43}let (TagAgain: bitstring,MTC_Again: bitstring,MV_Again: bitstring) = RetryResponse in
+        {44}if (TagAgain = Resyn) then
+        {45}let PendDevice: bitstring = unxor(MTC_Again,h((WT,X))) in
+        {46}if (MV_Again = h((IDsp,IDs,PendDevice,WT,AsAgain))) then
+        {47}event DeviceInstallsPending(PendDevice,AsAgain);
+        {48}new AsProof: bitstring;
+        {49}let ETCProof: bitstring = xor(PendDevice,h((AsProof,X))) in
+        {50}let VProof: bitstring = h((IDs,PendDevice,AsProof,WT)) in
+        {51}event DeviceProofLogin(PendDevice,AsProof);
+        {52}event DeviceSendsProof(AsProof,ETCProof,VProof);
+        {53}out(c, (AsProof,ETCProof,VProof))
+) | (
+    {54}let TC0: bitstring = T1 in
+    {55}let Pr0: bitstring = R0 in
+    {56}let Last0: bitstring = L0 in
+    {57}in(c, (AsRetry_S: bitstring,ETCRetry: bitstring,V1Retry: bitstring));
+    {58}let DRetry: bitstring = unxor(ETCRetry,h((AsRetry_S,X))) in
+    {59}if (DRetry = TC0) then
+    {60}if (V1Retry = h((IDs,TC0,AsRetry_S,WT))) then
+    {61}if (AsRetry_S ≠ Last0) then
+    {62}new AspRetry: bitstring;
+    {63}let Asp_1: bitstring = AspRetry in
+    {64}let SK_1: bitstring = h((AsRetry_S,Asp_1,WT)) in
+    {65}let SSK_1: bitstring = h((IDs,IDsp,SK_1)) in
+    {66}let TCn_1: bitstring = xor(TC0,h((SK_1,Asp_1))) in
+    {67}let (T2_1: bitstring,ReplyRetry_1: bitstring) = (TCn_1,(Normal,Asp_1,h((WT,IDsp,TCn_1,Asp_1,SSK_1)))) in
+    {68}event ServerAcceptsFreshRetry(TC0,T2_1,AsRetry_S);
+    {69}out(c, ReplyRetry_1);
+    {70}in(c, (AsOld_S: bitstring,ETCOld: bitstring,V1Old: bitstring));
+    {71}let DOld: bitstring = unxor(ETCOld,h((AsOld_S,X))) in
+    {72}if (DOld = TC0) then
+    {73}if (V1Old = h((IDs,TC0,AsOld_S,WT))) then
+    {74}if (AsOld_S ≠ AsRetry_S) then
+    {75}if (V1Old ≠ V1Retry) then
+    {76}new ys: bitstring;
+    {77}let P: bitstring = h1((IDs,ys)) in
+    {78}event ServerIssuesPendingForOld(P,AsOld_S);
+    {79}out(c, (Resyn,xor(P,h((WT,X))),h((IDsp,IDs,P,WT,AsOld_S))));
+    {80}in(c, (AsNext_S: bitstring,ETCNext: bitstring,V1Next: bitstring));
+    {81}let DNext: bitstring = unxor(ETCNext,h((AsNext_S,X))) in
+    {82}if (DNext = T2_1) then
+    {83}if (V1Next = h((IDs,T2_1,AsNext_S,WT))) then
+    {84}if (AsNext_S ≠ AsOld_S) then
+    {85}new AspNext: bitstring;
+    {86}let Asp_2: bitstring = AspNext in
+    {87}let SK_2: bitstring = h((AsNext_S,Asp_2,WT)) in
+    {88}let SSK_2: bitstring = h((IDs,IDsp,SK_2)) in
+    {89}let TCn_2: bitstring = xor(T2_1,h((SK_2,Asp_2))) in
+    {90}let (T3: bitstring,ReplyNext: bitstring) = (TCn_2,(Normal,Asp_2,h((WT,IDsp,TCn_2,Asp_2,SSK_2)))) in
+    {91}event ServerAcceptsCurrentAfterReplay(T2_1,AsNext_S);
+    {92}out(c, ReplyNext);
+    {93}in(c, (AsAgain_S: bitstring,ETCAgain: bitstring,V1Again: bitstring));
+    {94}let DAgain: bitstring = unxor(ETCAgain,h((AsAgain_S,X))) in
+    {95}if (DAgain = T2_1) then
+    {96}if (V1Again = h((IDs,T2_1,AsAgain_S,WT))) then
+    {97}if (AsAgain_S ≠ AsNext_S) then
+    {98}event ServerReissuesPending(P,AsAgain_S);
+    {99}out(c, (Resyn,xor(P,h((WT,X))),h((IDsp,IDs,P,WT,AsAgain_S))));
+    {100}in(c, (AsProof_S: bitstring,ETCProof_1: bitstring,V1Proof: bitstring));
+    {101}let DProof: bitstring = unxor(ETCProof_1,h((AsProof_S,X))) in
+    {102}if (DProof = P) then
+    (
+        {103}if (V1Proof = h((IDs,P,AsProof_S,WT))) then
+            {104}event ServerCommitsPending(P)
+        else
+            {105}event ServerRejectsFinalLogin(AsProof_S,ETCProof_1,V1Proof)
+    )
+    else
+        {106}event ServerRejectsFinalLogin(AsProof_S,ETCProof_1,V1Proof)
+)
+
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}new T1: bitstring;
+{2}new R0: bitstring;
+{3}new L0: bitstring;
+(
+    {5}new AsOld: bitstring;
+    {4}let T1_1: bitstring = T1 in
+    {6}event DeviceOldRequest(T1_1,AsOld);
+    {7}let As: bitstring = AsOld in
+    {8}out(c, (As,xor(T1_1,h((As,X))),h((IDs,T1_1,As,WT))));
+    {9}new AsRetry: bitstring;
+    {10}event DeviceFreshRetry(T1_1,AsRetry);
+    {11}let As_1: bitstring = AsRetry in
+    {12}out(c, (As_1,xor(T1_1,h((As_1,X))),h((IDs,T1_1,As_1,WT))));
+    {13}in(c, ReplyRetry: bitstring);
+    {15}let v: bitstring = ReplyRetry in
+    {16}let v_1: bool = success?(1-proj-3-tuple(v)) in
+    {17}let Vsp: bitstring = (if v_1 then 3-proj-3-tuple(v) else caught-fail) in
+    {18}let Asp: bitstring = (if v_1 then 2-proj-3-tuple(v) else caught-fail) in
+    {19}let Tag: bitstring = (if v_1 then 1-proj-3-tuple(v) else caught-fail) in
+    {20}let v_2: bool = (if v_1 then catch-fail((Tag = Normal)) else caught-fail) in
+    {14}let As_2: bitstring = AsRetry in
+    {21}let SK: bitstring = (if v_2 then h((As_2,Asp,WT)) else caught-fail) in
+    {23}let TCn: bitstring = (if v_2 then xor(T1_1,h((SK,Asp))) else caught-fail) in
+    {22}let SSK: bitstring = (if v_2 then h((IDs,IDsp,SK)) else caught-fail) in
+    {24}let T2: bitstring = (if v_1 then (if undo-catch-fail(v_2) then (if (Vsp = h((WT,IDsp,TCn,Asp,SSK))) then TCn else T1_1) else fail-any_type) else fail-any_type) in
+    {25}if (T2 ≠ T1_1) then
+    {26}event DeviceAcceptsFreshRetry(T1_1,T2,AsRetry);
+    {27}new AsNext: bitstring;
+    {28}event DeviceNextLogin(T2,AsNext);
+    {29}let As_3: bitstring = AsNext in
+    {30}out(c, (As_3,xor(T2,h((As_3,X))),h((IDs,T2,As_3,WT))));
+    {31}in(c, StaleResponse: bitstring);
+    {32}let (TagOld: bitstring,MTC_Old: bitstring,MV_Old: bitstring) = StaleResponse in
+    {33}if (TagOld = Resyn) then
+    {34}let CandOld: bitstring = unxor(MTC_Old,h((WT,X))) in
+    {35}if (MV_Old = h((IDsp,IDs,CandOld,WT,AsNext))) then
+        {36}event DeviceInstallsStaleCredential(CandOld,AsNext)
+    else
+        {37}event DeviceRejectsStaleResponse(CandOld,AsOld,AsNext);
+        {38}new AsAgain: bitstring;
+        {39}event DeviceRetriesAfterStale(T2,AsAgain);
+        {40}let As_4: bitstring = AsAgain in
+        {41}out(c, (As_4,xor(T2,h((As_4,X))),h((IDs,T2,As_4,WT))));
+        {42}in(c, RetryResponse: bitstring);
+        {43}let (TagAgain: bitstring,MTC_Again: bitstring,MV_Again: bitstring) = RetryResponse in
+        {44}if (TagAgain = Resyn) then
+        {45}let PendDevice: bitstring = unxor(MTC_Again,h((WT,X))) in
+        {46}if (MV_Again = h((IDsp,IDs,PendDevice,WT,AsAgain))) then
+        {47}event DeviceInstallsPending(PendDevice,AsAgain);
+        {48}new AsProof: bitstring;
+        {51}event DeviceProofLogin(PendDevice,AsProof);
+        {50}let VProof: bitstring = h((IDs,PendDevice,AsProof,WT)) in
+        {49}let ETCProof: bitstring = xor(PendDevice,h((AsProof,X))) in
+        {52}event DeviceSendsProof(AsProof,ETCProof,VProof);
+        {53}out(c, (AsProof,ETCProof,VProof))
+) | (
+    {57}in(c, (AsRetry_S: bitstring,ETCRetry: bitstring,V1Retry: bitstring));
+    {58}let DRetry: bitstring = unxor(ETCRetry,h((AsRetry_S,X))) in
+    {54}let TC0: bitstring = T1 in
+    {59}if (DRetry = TC0) then
+    {60}if (V1Retry = h((IDs,TC0,AsRetry_S,WT))) then
+    {56}let Last0: bitstring = L0 in
+    {61}if (AsRetry_S ≠ Last0) then
+    {62}new AspRetry: bitstring;
+    {63}let Asp_1: bitstring = AspRetry in
+    {64}let SK_1: bitstring = h((AsRetry_S,Asp_1,WT)) in
+    {66}let TCn_1: bitstring = xor(TC0,h((SK_1,Asp_1))) in
+    {65}let SSK_1: bitstring = h((IDs,IDsp,SK_1)) in
+    {67}let (T2_1: bitstring,ReplyRetry_1: bitstring) = (TCn_1,(Normal,Asp_1,h((WT,IDsp,TCn_1,Asp_1,SSK_1)))) in
+    {68}event ServerAcceptsFreshRetry(TC0,T2_1,AsRetry_S);
+    {69}out(c, ReplyRetry_1);
+    {70}in(c, (AsOld_S: bitstring,ETCOld: bitstring,V1Old: bitstring));
+    {71}let DOld: bitstring = unxor(ETCOld,h((AsOld_S,X))) in
+    {72}if (DOld = TC0) then
+    {73}if (V1Old = h((IDs,TC0,AsOld_S,WT))) then
+    {74}if (AsOld_S ≠ AsRetry_S) then
+    {75}if (V1Old ≠ V1Retry) then
+    {76}new ys: bitstring;
+    {77}let P: bitstring = h1((IDs,ys)) in
+    {78}event ServerIssuesPendingForOld(P,AsOld_S);
+    {79}out(c, (Resyn,xor(P,h((WT,X))),h((IDsp,IDs,P,WT,AsOld_S))));
+    {80}in(c, (AsNext_S: bitstring,ETCNext: bitstring,V1Next: bitstring));
+    {81}let DNext: bitstring = unxor(ETCNext,h((AsNext_S,X))) in
+    {82}if (DNext = T2_1) then
+    {83}if (V1Next = h((IDs,T2_1,AsNext_S,WT))) then
+    {84}if (AsNext_S ≠ AsOld_S) then
+    {85}new AspNext: bitstring;
+    {86}let Asp_2: bitstring = AspNext in
+    {87}let SK_2: bitstring = h((AsNext_S,Asp_2,WT)) in
+    {89}let TCn_2: bitstring = xor(T2_1,h((SK_2,Asp_2))) in
+    {88}let SSK_2: bitstring = h((IDs,IDsp,SK_2)) in
+    {90}let (T3: bitstring,ReplyNext: bitstring) = (TCn_2,(Normal,Asp_2,h((WT,IDsp,TCn_2,Asp_2,SSK_2)))) in
+    {91}event ServerAcceptsCurrentAfterReplay(T2_1,AsNext_S);
+    {92}out(c, ReplyNext);
+    {93}in(c, (AsAgain_S: bitstring,ETCAgain: bitstring,V1Again: bitstring));
+    {94}let DAgain: bitstring = unxor(ETCAgain,h((AsAgain_S,X))) in
+    {95}if (DAgain = T2_1) then
+    {96}if (V1Again = h((IDs,T2_1,AsAgain_S,WT))) then
+    {97}if (AsAgain_S ≠ AsNext_S) then
+    {98}event ServerReissuesPending(P,AsAgain_S);
+    {99}out(c, (Resyn,xor(P,h((WT,X))),h((IDsp,IDs,P,WT,AsAgain_S))));
+    {100}in(c, (AsProof_S: bitstring,ETCProof_1: bitstring,V1Proof: bitstring));
+    {101}let DProof: bitstring = unxor(ETCProof_1,h((AsProof_S,X))) in
+    {102}if (DProof = P) then
+    (
+        {103}if (V1Proof = h((IDs,P,AsProof_S,WT))) then
+            {104}event ServerCommitsPending(P)
+        else
+            {105}event ServerRejectsFinalLogin(AsProof_S,ETCProof_1,V1Proof)
+    )
+    else
+        {106}event ServerRejectsFinalLogin(AsProof_S,ETCProof_1,V1Proof)
+)
+
+-- Query not (event(DeviceOldRequest(t1,asOld)) && event(DeviceFreshRetry(t1,asRetry)) && event(ServerAcceptsFreshRetry(t1,t2,asRetry)) && event(DeviceAcceptsFreshRetry(t1,t2,asRetry)) && event(ServerIssuesPendingForOld(p,asOld)) && event(DeviceNextLogin(t2,asNext)) && event(ServerAcceptsCurrentAfterReplay(t2,asNext)) && event(DeviceRejectsStaleResponse(p,asOld,asNext)) && event(DeviceRetriesAfterStale(t2,asAgain)) && event(ServerReissuesPending(p,asAgain)) && event(DeviceInstallsPending(p,asAgain)) && event(DeviceProofLogin(p,asProof)) && event(ServerCommitsPending(p)) && asOld ≠ asRetry) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 153 rules (35 with conclusion selected). Queue: 47 rules.
+400 rules inserted. Base: 270 rules (51 with conclusion selected). Queue: 57 rules.
+600 rules inserted. Base: 358 rules (51 with conclusion selected). Queue: 55 rules.
+800 rules inserted. Base: 453 rules (59 with conclusion selected). Queue: 9 rules.
+Starting query not (event(DeviceOldRequest(t1,asOld)) && event(DeviceFreshRetry(t1,asRetry)) && event(ServerAcceptsFreshRetry(t1,t2,asRetry)) && event(DeviceAcceptsFreshRetry(t1,t2,asRetry)) && event(ServerIssuesPendingForOld(p,asOld)) && event(DeviceNextLogin(t2,asNext)) && event(ServerAcceptsCurrentAfterReplay(t2,asNext)) && event(DeviceRejectsStaleResponse(p,asOld,asNext)) && event(DeviceRetriesAfterStale(t2,asAgain)) && event(ServerReissuesPending(p,asAgain)) && event(DeviceInstallsPending(p,asAgain)) && event(DeviceProofLogin(p,asProof)) && event(ServerCommitsPending(p)) && asOld ≠ asRetry)
+goal reachable: MV_Old_1 ≠ h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[],AsNext_1)) && b-event(@p_act(@occ42[],(Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[],AsAgain_1))))) && b-event(@p_act(@occ100[],(AsProof_1,xor(h1((IDs[],ys_1)),h((AsProof_1,X[]))),h((IDs[],h1((IDs[],ys_1)),AsProof_1,WT[]))))) && attacker(MV_Old_1) && b-event(@p_act(@occ31[],(Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),MV_Old_1))) && b-event(@p_act(@occ93[],(AsAgain_1,xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsAgain_1,X[]))),h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsAgain_1,WT[]))))) && b-event(@p_act(@occ13[],(Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[]))))))))) && b-event(@p_act(@occ80[],(AsNext_1,xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsNext_1,X[]))),h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsNext_1,WT[]))))) && b-event(@p_act(@occ70[],(AsOld[],xor(T1[],h((AsOld[],X[]))),h((IDs[],T1[],AsOld[],WT[]))))) && b-event(@p_act(@occ57[],(AsRetry[],xor(T1[],h((AsRetry[],X[]))),h((IDs[],T1[],AsRetry[],WT[]))))) -> event(DeviceOldRequest(T1[],AsOld[])) && event(DeviceFreshRetry(T1[],AsRetry[])) && event(ServerAcceptsFreshRetry(T1[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsRetry[])) && event(DeviceAcceptsFreshRetry(T1[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsRetry[])) && event(ServerIssuesPendingForOld(h1((IDs[],ys_1)),AsOld[])) && event(DeviceNextLogin(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsNext_1)) && event(ServerAcceptsCurrentAfterReplay(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsNext_1)) && event(DeviceRejectsStaleResponse(h1((IDs[],ys_1)),AsOld[],AsNext_1)) && event(DeviceRetriesAfterStale(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsAgain_1)) && event(ServerReissuesPending(h1((IDs[],ys_1)),AsAgain_1)) && event(DeviceInstallsPending(h1((IDs[],ys_1)),AsAgain_1)) && event(DeviceProofLogin(h1((IDs[],ys_1)),AsProof_1)) && event(ServerCommitsPending(h1((IDs[],ys_1))))
+Abbreviations:
+ys_1 = ys[V1Old = h((IDs[],T1[],AsOld[],WT[])),ETCOld = xor(T1[],h((AsOld[],X[]))),AsOld_S = AsOld[],V1Retry = h((IDs[],T1[],AsRetry[],WT[])),ETCRetry = xor(T1[],h((AsRetry[],X[]))),AsRetry_S = AsRetry[]]
+AspRetry_1 = AspRetry[V1Retry = h((IDs[],T1[],AsRetry[],WT[])),ETCRetry = xor(T1[],h((AsRetry[],X[]))),AsRetry_S = AsRetry[]]
+AsNext_1 = AsNext[ReplyRetry = (Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[])))))))]
+AsAgain_1 = AsAgain[StaleResponse = (Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),MV_Old_1),ReplyRetry = (Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[])))))))]
+AsProof_1 = AsProof[RetryResponse = (Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[],AsAgain_1))),StaleResponse = (Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),MV_Old_1),ReplyRetry = (Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[])))))))]
+
+Derivation:
+Abbreviations:
+AspRetry_1 = AspRetry[V1Retry = h((IDs[],T1[],AsRetry[],WT[])),ETCRetry = xor(T1[],h((AsRetry[],X[]))),AsRetry_S = AsRetry[]]
+ys_1 = ys[V1Old = h((IDs[],T1[],AsOld[],WT[])),ETCOld = xor(T1[],h((AsOld[],X[]))),AsOld_S = AsOld[],V1Retry = h((IDs[],T1[],AsRetry[],WT[])),ETCRetry = xor(T1[],h((AsRetry[],X[]))),AsRetry_S = AsRetry[]]
+AsNext_1 = AsNext[ReplyRetry = (Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[])))))))]
+AsAgain_1 = AsAgain[StaleResponse = (Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),MV_Old_1),ReplyRetry = (Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[])))))))]
+AsProof_1 = AsProof[RetryResponse = (Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[],AsAgain_1))),StaleResponse = (Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),MV_Old_1),ReplyRetry = (Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[])))))))]
+
+1. The message (AsRetry[],xor(T1[],h((AsRetry[],X[]))),h((IDs[],T1[],AsRetry[],WT[]))) may be sent to the attacker at output {12}.
+attacker((AsRetry[],xor(T1[],h((AsRetry[],X[]))),h((IDs[],T1[],AsRetry[],WT[])))).
+
+2. By 1, the attacker may know (AsRetry[],xor(T1[],h((AsRetry[],X[]))),h((IDs[],T1[],AsRetry[],WT[]))).
+Using the function 3-proj-3-tuple the attacker may obtain h((IDs[],T1[],AsRetry[],WT[])).
+attacker(h((IDs[],T1[],AsRetry[],WT[]))).
+
+3. By 1, the attacker may know (AsRetry[],xor(T1[],h((AsRetry[],X[]))),h((IDs[],T1[],AsRetry[],WT[]))).
+Using the function 2-proj-3-tuple the attacker may obtain xor(T1[],h((AsRetry[],X[]))).
+attacker(xor(T1[],h((AsRetry[],X[])))).
+
+4. By 1, the attacker may know (AsRetry[],xor(T1[],h((AsRetry[],X[]))),h((IDs[],T1[],AsRetry[],WT[]))).
+Using the function 1-proj-3-tuple the attacker may obtain AsRetry[].
+attacker(AsRetry[]).
+
+5. By 4, the attacker may know AsRetry[].
+By 3, the attacker may know xor(T1[],h((AsRetry[],X[]))).
+By 2, the attacker may know h((IDs[],T1[],AsRetry[],WT[])).
+Using the function 3-tuple the attacker may obtain (AsRetry[],xor(T1[],h((AsRetry[],X[]))),h((IDs[],T1[],AsRetry[],WT[]))).
+attacker((AsRetry[],xor(T1[],h((AsRetry[],X[]))),h((IDs[],T1[],AsRetry[],WT[])))).
+
+6. The message (AsOld[],xor(T1[],h((AsOld[],X[]))),h((IDs[],T1[],AsOld[],WT[]))) may be sent to the attacker at output {8}.
+attacker((AsOld[],xor(T1[],h((AsOld[],X[]))),h((IDs[],T1[],AsOld[],WT[])))).
+
+7. By 6, the attacker may know (AsOld[],xor(T1[],h((AsOld[],X[]))),h((IDs[],T1[],AsOld[],WT[]))).
+Using the function 3-proj-3-tuple the attacker may obtain h((IDs[],T1[],AsOld[],WT[])).
+attacker(h((IDs[],T1[],AsOld[],WT[]))).
+
+8. By 6, the attacker may know (AsOld[],xor(T1[],h((AsOld[],X[]))),h((IDs[],T1[],AsOld[],WT[]))).
+Using the function 2-proj-3-tuple the attacker may obtain xor(T1[],h((AsOld[],X[]))).
+attacker(xor(T1[],h((AsOld[],X[])))).
+
+9. By 6, the attacker may know (AsOld[],xor(T1[],h((AsOld[],X[]))),h((IDs[],T1[],AsOld[],WT[]))).
+Using the function 1-proj-3-tuple the attacker may obtain AsOld[].
+attacker(AsOld[]).
+
+10. By 9, the attacker may know AsOld[].
+By 8, the attacker may know xor(T1[],h((AsOld[],X[]))).
+By 7, the attacker may know h((IDs[],T1[],AsOld[],WT[])).
+Using the function 3-tuple the attacker may obtain (AsOld[],xor(T1[],h((AsOld[],X[]))),h((IDs[],T1[],AsOld[],WT[]))).
+attacker((AsOld[],xor(T1[],h((AsOld[],X[]))),h((IDs[],T1[],AsOld[],WT[])))).
+
+11. The event @p_act(@occ57[],(AsRetry[],xor(T1[],h((AsRetry[],X[]))),h((IDs[],T1[],AsRetry[],WT[])))) records how variables are instantiated at {57}.
+The message (AsRetry[],xor(T1[],h((AsRetry[],X[]))),h((IDs[],T1[],AsRetry[],WT[]))) that the attacker may have by 5 may be received at input {57}.
+We have AsRetry[] ≠ L0[].
+So the message (Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[]))))))) may be sent to the attacker at output {69}.
+attacker((Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[])))))))).
+
+12. By 11, the attacker may know (Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[]))))))).
+Using the function 3-proj-3-tuple the attacker may obtain h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[])))))).
+attacker(h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[]))))))).
+
+13. By 11, the attacker may know (Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[]))))))).
+Using the function 2-proj-3-tuple the attacker may obtain AspRetry_1.
+attacker(AspRetry_1).
+
+14. The attacker initially knows Normal[].
+attacker(Normal[]).
+
+15. By 14, the attacker may know Normal[].
+By 13, the attacker may know AspRetry_1.
+By 12, the attacker may know h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[])))))).
+Using the function 3-tuple the attacker may obtain (Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[]))))))).
+attacker((Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[])))))))).
+
+16. The event @p_act(@occ13[],(Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[])))))))) records how variables are instantiated at {13}.
+The message (Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[]))))))) that the attacker may have by 15 may be received at input {13}.
+So the message (AsNext_1,xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsNext_1,X[]))),h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsNext_1,WT[]))) may be sent to the attacker at output {30}.
+attacker((AsNext_1,xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsNext_1,X[]))),h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsNext_1,WT[])))).
+
+17. By 16, the attacker may know (AsNext_1,xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsNext_1,X[]))),h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsNext_1,WT[]))).
+Using the function 3-proj-3-tuple the attacker may obtain h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsNext_1,WT[])).
+attacker(h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsNext_1,WT[]))).
+
+18. By 16, the attacker may know (AsNext_1,xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsNext_1,X[]))),h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsNext_1,WT[]))).
+Using the function 2-proj-3-tuple the attacker may obtain xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsNext_1,X[]))).
+attacker(xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsNext_1,X[])))).
+
+19. By 16, the attacker may know (AsNext_1,xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsNext_1,X[]))),h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsNext_1,WT[]))).
+Using the function 1-proj-3-tuple the attacker may obtain AsNext_1.
+attacker(AsNext_1).
+
+20. By 19, the attacker may know AsNext_1.
+By 18, the attacker may know xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsNext_1,X[]))).
+By 17, the attacker may know h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsNext_1,WT[])).
+Using the function 3-tuple the attacker may obtain (AsNext_1,xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsNext_1,X[]))),h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsNext_1,WT[]))).
+attacker((AsNext_1,xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsNext_1,X[]))),h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsNext_1,WT[])))).
+
+21. We assume as hypothesis that
+attacker(MV_Old_1).
+
+22. The event @p_act(@occ57[],(AsRetry[],xor(T1[],h((AsRetry[],X[]))),h((IDs[],T1[],AsRetry[],WT[])))) records how variables are instantiated at {57}.
+The message (AsRetry[],xor(T1[],h((AsRetry[],X[]))),h((IDs[],T1[],AsRetry[],WT[]))) that the attacker may have by 5 may be received at input {57}.
+The event @p_act(@occ70[],(AsOld[],xor(T1[],h((AsOld[],X[]))),h((IDs[],T1[],AsOld[],WT[])))) records how variables are instantiated at {70}.
+The message (AsOld[],xor(T1[],h((AsOld[],X[]))),h((IDs[],T1[],AsOld[],WT[]))) that the attacker may have by 10 may be received at input {70}.
+We have AsOld[] ≠ AsRetry[] && AsRetry[] ≠ L0[].
+So the message (Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[],AsOld[]))) may be sent to the attacker at output {79}.
+attacker((Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[],AsOld[])))).
+
+23. By 22, the attacker may know (Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[],AsOld[]))).
+Using the function 2-proj-3-tuple the attacker may obtain xor(h1((IDs[],ys_1)),h((WT[],X[]))).
+attacker(xor(h1((IDs[],ys_1)),h((WT[],X[])))).
+
+24. The attacker initially knows Resyn[].
+attacker(Resyn[]).
+
+25. By 24, the attacker may know Resyn[].
+By 23, the attacker may know xor(h1((IDs[],ys_1)),h((WT[],X[]))).
+By 21, the attacker may know MV_Old_1.
+Using the function 3-tuple the attacker may obtain (Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),MV_Old_1).
+attacker((Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),MV_Old_1)).
+
+26. The event @p_act(@occ13[],(Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[])))))))) records how variables are instantiated at {13}.
+The message (Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[]))))))) that the attacker may have by 15 may be received at input {13}.
+The event @p_act(@occ31[],(Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),MV_Old_1)) records how variables are instantiated at {31}.
+The message (Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),MV_Old_1) that the attacker may have by 25 may be received at input {31}.
+We have MV_Old_1 ≠ h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[],AsNext_1)).
+So the message (AsAgain_1,xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsAgain_1,X[]))),h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsAgain_1,WT[]))) may be sent to the attacker at output {41}.
+attacker((AsAgain_1,xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsAgain_1,X[]))),h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsAgain_1,WT[])))).
+
+27. By 26, the attacker may know (AsAgain_1,xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsAgain_1,X[]))),h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsAgain_1,WT[]))).
+Using the function 3-proj-3-tuple the attacker may obtain h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsAgain_1,WT[])).
+attacker(h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsAgain_1,WT[]))).
+
+28. By 26, the attacker may know (AsAgain_1,xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsAgain_1,X[]))),h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsAgain_1,WT[]))).
+Using the function 2-proj-3-tuple the attacker may obtain xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsAgain_1,X[]))).
+attacker(xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsAgain_1,X[])))).
+
+29. By 26, the attacker may know (AsAgain_1,xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsAgain_1,X[]))),h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsAgain_1,WT[]))).
+Using the function 1-proj-3-tuple the attacker may obtain AsAgain_1.
+attacker(AsAgain_1).
+
+30. By 29, the attacker may know AsAgain_1.
+By 28, the attacker may know xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsAgain_1,X[]))).
+By 27, the attacker may know h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsAgain_1,WT[])).
+Using the function 3-tuple the attacker may obtain (AsAgain_1,xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsAgain_1,X[]))),h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsAgain_1,WT[]))).
+attacker((AsAgain_1,xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsAgain_1,X[]))),h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsAgain_1,WT[])))).
+
+31. The event @p_act(@occ57[],(AsRetry[],xor(T1[],h((AsRetry[],X[]))),h((IDs[],T1[],AsRetry[],WT[])))) records how variables are instantiated at {57}.
+The message (AsRetry[],xor(T1[],h((AsRetry[],X[]))),h((IDs[],T1[],AsRetry[],WT[]))) that the attacker may have by 5 may be received at input {57}.
+The event @p_act(@occ70[],(AsOld[],xor(T1[],h((AsOld[],X[]))),h((IDs[],T1[],AsOld[],WT[])))) records how variables are instantiated at {70}.
+The message (AsOld[],xor(T1[],h((AsOld[],X[]))),h((IDs[],T1[],AsOld[],WT[]))) that the attacker may have by 10 may be received at input {70}.
+The event @p_act(@occ80[],(AsNext_1,xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsNext_1,X[]))),h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsNext_1,WT[])))) records how variables are instantiated at {80}.
+The message (AsNext_1,xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsNext_1,X[]))),h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsNext_1,WT[]))) that the attacker may have by 20 may be received at input {80}.
+The event @p_act(@occ93[],(AsAgain_1,xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsAgain_1,X[]))),h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsAgain_1,WT[])))) records how variables are instantiated at {93}.
+The message (AsAgain_1,xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsAgain_1,X[]))),h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsAgain_1,WT[]))) that the attacker may have by 30 may be received at input {93}.
+We have AsAgain_1 ≠ AsNext_1 && AsNext_1 ≠ AsOld[] && AsOld[] ≠ AsRetry[] && AsRetry[] ≠ L0[].
+So the message (Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[],AsAgain_1))) may be sent to the attacker at output {99}.
+attacker((Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[],AsAgain_1)))).
+
+32. By 31, the attacker may know (Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[],AsAgain_1))).
+Using the function 3-proj-3-tuple the attacker may obtain h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[],AsAgain_1)).
+attacker(h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[],AsAgain_1))).
+
+33. By 24, the attacker may know Resyn[].
+By 23, the attacker may know xor(h1((IDs[],ys_1)),h((WT[],X[]))).
+By 32, the attacker may know h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[],AsAgain_1)).
+Using the function 3-tuple the attacker may obtain (Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[],AsAgain_1))).
+attacker((Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[],AsAgain_1)))).
+
+34. The event @p_act(@occ13[],(Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[])))))))) records how variables are instantiated at {13}.
+The message (Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[]))))))) that the attacker may have by 15 may be received at input {13}.
+The event @p_act(@occ31[],(Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),MV_Old_1)) records how variables are instantiated at {31}.
+The message (Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),MV_Old_1) that the attacker may have by 25 may be received at input {31}.
+The event @p_act(@occ42[],(Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[],AsAgain_1)))) records how variables are instantiated at {42}.
+The message (Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[],AsAgain_1))) that the attacker may have by 33 may be received at input {42}.
+We have MV_Old_1 ≠ h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[],AsNext_1)).
+So the message (AsProof_1,xor(h1((IDs[],ys_1)),h((AsProof_1,X[]))),h((IDs[],h1((IDs[],ys_1)),AsProof_1,WT[]))) may be sent to the attacker at output {53}.
+attacker((AsProof_1,xor(h1((IDs[],ys_1)),h((AsProof_1,X[]))),h((IDs[],h1((IDs[],ys_1)),AsProof_1,WT[])))).
+
+35. By 34, the attacker may know (AsProof_1,xor(h1((IDs[],ys_1)),h((AsProof_1,X[]))),h((IDs[],h1((IDs[],ys_1)),AsProof_1,WT[]))).
+Using the function 3-proj-3-tuple the attacker may obtain h((IDs[],h1((IDs[],ys_1)),AsProof_1,WT[])).
+attacker(h((IDs[],h1((IDs[],ys_1)),AsProof_1,WT[]))).
+
+36. By 34, the attacker may know (AsProof_1,xor(h1((IDs[],ys_1)),h((AsProof_1,X[]))),h((IDs[],h1((IDs[],ys_1)),AsProof_1,WT[]))).
+Using the function 2-proj-3-tuple the attacker may obtain xor(h1((IDs[],ys_1)),h((AsProof_1,X[]))).
+attacker(xor(h1((IDs[],ys_1)),h((AsProof_1,X[])))).
+
+37. By 34, the attacker may know (AsProof_1,xor(h1((IDs[],ys_1)),h((AsProof_1,X[]))),h((IDs[],h1((IDs[],ys_1)),AsProof_1,WT[]))).
+Using the function 1-proj-3-tuple the attacker may obtain AsProof_1.
+attacker(AsProof_1).
+
+38. By 37, the attacker may know AsProof_1.
+By 36, the attacker may know xor(h1((IDs[],ys_1)),h((AsProof_1,X[]))).
+By 35, the attacker may know h((IDs[],h1((IDs[],ys_1)),AsProof_1,WT[])).
+Using the function 3-tuple the attacker may obtain (AsProof_1,xor(h1((IDs[],ys_1)),h((AsProof_1,X[]))),h((IDs[],h1((IDs[],ys_1)),AsProof_1,WT[]))).
+attacker((AsProof_1,xor(h1((IDs[],ys_1)),h((AsProof_1,X[]))),h((IDs[],h1((IDs[],ys_1)),AsProof_1,WT[])))).
+
+39. The event @p_act(@occ57[],(AsRetry[],xor(T1[],h((AsRetry[],X[]))),h((IDs[],T1[],AsRetry[],WT[])))) records how variables are instantiated at {57}.
+The message (AsRetry[],xor(T1[],h((AsRetry[],X[]))),h((IDs[],T1[],AsRetry[],WT[]))) that the attacker may have by 5 may be received at input {57}.
+The event @p_act(@occ70[],(AsOld[],xor(T1[],h((AsOld[],X[]))),h((IDs[],T1[],AsOld[],WT[])))) records how variables are instantiated at {70}.
+The message (AsOld[],xor(T1[],h((AsOld[],X[]))),h((IDs[],T1[],AsOld[],WT[]))) that the attacker may have by 10 may be received at input {70}.
+The event @p_act(@occ80[],(AsNext_1,xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsNext_1,X[]))),h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsNext_1,WT[])))) records how variables are instantiated at {80}.
+The message (AsNext_1,xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsNext_1,X[]))),h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsNext_1,WT[]))) that the attacker may have by 20 may be received at input {80}.
+The event @p_act(@occ93[],(AsAgain_1,xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsAgain_1,X[]))),h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsAgain_1,WT[])))) records how variables are instantiated at {93}.
+The message (AsAgain_1,xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsAgain_1,X[]))),h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsAgain_1,WT[]))) that the attacker may have by 30 may be received at input {93}.
+The event @p_act(@occ100[],(AsProof_1,xor(h1((IDs[],ys_1)),h((AsProof_1,X[]))),h((IDs[],h1((IDs[],ys_1)),AsProof_1,WT[])))) records how variables are instantiated at {100}.
+The message (AsProof_1,xor(h1((IDs[],ys_1)),h((AsProof_1,X[]))),h((IDs[],h1((IDs[],ys_1)),AsProof_1,WT[]))) that the attacker may have by 38 may be received at input {100}.
+We have AsAgain_1 ≠ AsNext_1 && AsNext_1 ≠ AsOld[] && AsOld[] ≠ AsRetry[] && AsRetry[] ≠ L0[].
+So event ServerCommitsPending(h1((IDs[],ys_1))) may be executed at {104}.
+event(ServerCommitsPending(h1((IDs[],ys_1)))).
+
+40. The event @p_act(@occ13[],(Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[])))))))) records how variables are instantiated at {13}.
+The message (Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[]))))))) that the attacker may have by 15 may be received at input {13}.
+The event @p_act(@occ31[],(Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),MV_Old_1)) records how variables are instantiated at {31}.
+The message (Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),MV_Old_1) that the attacker may have by 25 may be received at input {31}.
+The event @p_act(@occ42[],(Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[],AsAgain_1)))) records how variables are instantiated at {42}.
+The message (Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[],AsAgain_1))) that the attacker may have by 33 may be received at input {42}.
+We have MV_Old_1 ≠ h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[],AsNext_1)).
+So event DeviceProofLogin(h1((IDs[],ys_1)),AsProof_1) may be executed at {51}.
+event(DeviceProofLogin(h1((IDs[],ys_1)),AsProof_1)).
+
+41. The event @p_act(@occ13[],(Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[])))))))) records how variables are instantiated at {13}.
+The message (Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[]))))))) that the attacker may have by 15 may be received at input {13}.
+The event @p_act(@occ31[],(Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),MV_Old_1)) records how variables are instantiated at {31}.
+The message (Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),MV_Old_1) that the attacker may have by 25 may be received at input {31}.
+The event @p_act(@occ42[],(Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[],AsAgain_1)))) records how variables are instantiated at {42}.
+The message (Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[],AsAgain_1))) that the attacker may have by 33 may be received at input {42}.
+We have MV_Old_1 ≠ h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[],AsNext_1)).
+So event DeviceInstallsPending(h1((IDs[],ys_1)),AsAgain_1) may be executed at {47}.
+event(DeviceInstallsPending(h1((IDs[],ys_1)),AsAgain_1)).
+
+42. The event @p_act(@occ57[],(AsRetry[],xor(T1[],h((AsRetry[],X[]))),h((IDs[],T1[],AsRetry[],WT[])))) records how variables are instantiated at {57}.
+The message (AsRetry[],xor(T1[],h((AsRetry[],X[]))),h((IDs[],T1[],AsRetry[],WT[]))) that the attacker may have by 5 may be received at input {57}.
+The event @p_act(@occ70[],(AsOld[],xor(T1[],h((AsOld[],X[]))),h((IDs[],T1[],AsOld[],WT[])))) records how variables are instantiated at {70}.
+The message (AsOld[],xor(T1[],h((AsOld[],X[]))),h((IDs[],T1[],AsOld[],WT[]))) that the attacker may have by 10 may be received at input {70}.
+The event @p_act(@occ80[],(AsNext_1,xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsNext_1,X[]))),h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsNext_1,WT[])))) records how variables are instantiated at {80}.
+The message (AsNext_1,xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsNext_1,X[]))),h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsNext_1,WT[]))) that the attacker may have by 20 may be received at input {80}.
+The event @p_act(@occ93[],(AsAgain_1,xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsAgain_1,X[]))),h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsAgain_1,WT[])))) records how variables are instantiated at {93}.
+The message (AsAgain_1,xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsAgain_1,X[]))),h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsAgain_1,WT[]))) that the attacker may have by 30 may be received at input {93}.
+We have AsAgain_1 ≠ AsNext_1 && AsNext_1 ≠ AsOld[] && AsOld[] ≠ AsRetry[] && AsRetry[] ≠ L0[].
+So event ServerReissuesPending(h1((IDs[],ys_1)),AsAgain_1) may be executed at {98}.
+event(ServerReissuesPending(h1((IDs[],ys_1)),AsAgain_1)).
+
+43. The event @p_act(@occ13[],(Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[])))))))) records how variables are instantiated at {13}.
+The message (Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[]))))))) that the attacker may have by 15 may be received at input {13}.
+The event @p_act(@occ31[],(Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),MV_Old_1)) records how variables are instantiated at {31}.
+The message (Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),MV_Old_1) that the attacker may have by 25 may be received at input {31}.
+We have MV_Old_1 ≠ h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[],AsNext_1)).
+So event DeviceRetriesAfterStale(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsAgain_1) may be executed at {39}.
+event(DeviceRetriesAfterStale(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsAgain_1)).
+
+44. The event @p_act(@occ13[],(Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[])))))))) records how variables are instantiated at {13}.
+The message (Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[]))))))) that the attacker may have by 15 may be received at input {13}.
+The event @p_act(@occ31[],(Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),MV_Old_1)) records how variables are instantiated at {31}.
+The message (Resyn[],xor(h1((IDs[],ys_1)),h((WT[],X[]))),MV_Old_1) that the attacker may have by 25 may be received at input {31}.
+We have MV_Old_1 ≠ h((IDsp[],IDs[],h1((IDs[],ys_1)),WT[],AsNext_1)).
+So event DeviceRejectsStaleResponse(h1((IDs[],ys_1)),AsOld[],AsNext_1) may be executed at {37}.
+event(DeviceRejectsStaleResponse(h1((IDs[],ys_1)),AsOld[],AsNext_1)).
+
+45. The event @p_act(@occ57[],(AsRetry[],xor(T1[],h((AsRetry[],X[]))),h((IDs[],T1[],AsRetry[],WT[])))) records how variables are instantiated at {57}.
+The message (AsRetry[],xor(T1[],h((AsRetry[],X[]))),h((IDs[],T1[],AsRetry[],WT[]))) that the attacker may have by 5 may be received at input {57}.
+The event @p_act(@occ70[],(AsOld[],xor(T1[],h((AsOld[],X[]))),h((IDs[],T1[],AsOld[],WT[])))) records how variables are instantiated at {70}.
+The message (AsOld[],xor(T1[],h((AsOld[],X[]))),h((IDs[],T1[],AsOld[],WT[]))) that the attacker may have by 10 may be received at input {70}.
+The event @p_act(@occ80[],(AsNext_1,xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsNext_1,X[]))),h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsNext_1,WT[])))) records how variables are instantiated at {80}.
+The message (AsNext_1,xor(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),h((AsNext_1,X[]))),h((IDs[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsNext_1,WT[]))) that the attacker may have by 20 may be received at input {80}.
+We have AsNext_1 ≠ AsOld[] && AsOld[] ≠ AsRetry[] && AsRetry[] ≠ L0[].
+So event ServerAcceptsCurrentAfterReplay(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsNext_1) may be executed at {91}.
+event(ServerAcceptsCurrentAfterReplay(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsNext_1)).
+
+46. The event @p_act(@occ13[],(Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[])))))))) records how variables are instantiated at {13}.
+The message (Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[]))))))) that the attacker may have by 15 may be received at input {13}.
+So event DeviceNextLogin(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsNext_1) may be executed at {28}.
+event(DeviceNextLogin(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsNext_1)).
+
+47. The event @p_act(@occ57[],(AsRetry[],xor(T1[],h((AsRetry[],X[]))),h((IDs[],T1[],AsRetry[],WT[])))) records how variables are instantiated at {57}.
+The message (AsRetry[],xor(T1[],h((AsRetry[],X[]))),h((IDs[],T1[],AsRetry[],WT[]))) that the attacker may have by 5 may be received at input {57}.
+The event @p_act(@occ70[],(AsOld[],xor(T1[],h((AsOld[],X[]))),h((IDs[],T1[],AsOld[],WT[])))) records how variables are instantiated at {70}.
+The message (AsOld[],xor(T1[],h((AsOld[],X[]))),h((IDs[],T1[],AsOld[],WT[]))) that the attacker may have by 10 may be received at input {70}.
+We have AsOld[] ≠ AsRetry[] && AsRetry[] ≠ L0[].
+So event ServerIssuesPendingForOld(h1((IDs[],ys_1)),AsOld[]) may be executed at {78}.
+event(ServerIssuesPendingForOld(h1((IDs[],ys_1)),AsOld[])).
+
+48. The event @p_act(@occ13[],(Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[])))))))) records how variables are instantiated at {13}.
+The message (Normal[],AspRetry_1,h((WT[],IDsp[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AspRetry_1,h((IDs[],IDsp[],h((AsRetry[],AspRetry_1,WT[]))))))) that the attacker may have by 15 may be received at input {13}.
+So event DeviceAcceptsFreshRetry(T1[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsRetry[]) may be executed at {26}.
+event(DeviceAcceptsFreshRetry(T1[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsRetry[])).
+
+49. The event @p_act(@occ57[],(AsRetry[],xor(T1[],h((AsRetry[],X[]))),h((IDs[],T1[],AsRetry[],WT[])))) records how variables are instantiated at {57}.
+The message (AsRetry[],xor(T1[],h((AsRetry[],X[]))),h((IDs[],T1[],AsRetry[],WT[]))) that the attacker may have by 5 may be received at input {57}.
+We have AsRetry[] ≠ L0[].
+So event ServerAcceptsFreshRetry(T1[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsRetry[]) may be executed at {68}.
+event(ServerAcceptsFreshRetry(T1[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsRetry[])).
+
+50. Event DeviceFreshRetry(T1[],AsRetry[]) may be executed at {10}.
+event(DeviceFreshRetry(T1[],AsRetry[])).
+
+51. Event DeviceOldRequest(T1[],AsOld[]) may be executed at {6}.
+event(DeviceOldRequest(T1[],AsOld[])).
+
+52. By 51, event(DeviceOldRequest(T1[],AsOld[])).
+By 50, event(DeviceFreshRetry(T1[],AsRetry[])).
+By 49, event(ServerAcceptsFreshRetry(T1[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsRetry[])).
+By 48, event(DeviceAcceptsFreshRetry(T1[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsRetry[])).
+By 47, event(ServerIssuesPendingForOld(h1((IDs[],ys_1)),AsOld[])).
+By 46, event(DeviceNextLogin(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsNext_1)).
+By 45, event(ServerAcceptsCurrentAfterReplay(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsNext_1)).
+By 44, event(DeviceRejectsStaleResponse(h1((IDs[],ys_1)),AsOld[],AsNext_1)).
+By 43, event(DeviceRetriesAfterStale(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsAgain_1)).
+By 42, event(ServerReissuesPending(h1((IDs[],ys_1)),AsAgain_1)).
+By 41, event(DeviceInstallsPending(h1((IDs[],ys_1)),AsAgain_1)).
+By 40, event(DeviceProofLogin(h1((IDs[],ys_1)),AsProof_1)).
+By 39, event(ServerCommitsPending(h1((IDs[],ys_1)))).
+We have AsOld[] ≠ AsRetry[].
+The goals are reached, combined in the following fact:
+event(DeviceOldRequest(T1[],AsOld[])) && event(DeviceFreshRetry(T1[],AsRetry[])) && event(ServerAcceptsFreshRetry(T1[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsRetry[])) && event(DeviceAcceptsFreshRetry(T1[],xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsRetry[])) && event(ServerIssuesPendingForOld(h1((IDs[],ys_1)),AsOld[])) && event(DeviceNextLogin(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsNext_1)) && event(ServerAcceptsCurrentAfterReplay(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsNext_1)) && event(DeviceRejectsStaleResponse(h1((IDs[],ys_1)),AsOld[],AsNext_1)) && event(DeviceRetriesAfterStale(xor(T1[],h((h((AsRetry[],AspRetry_1,WT[])),AspRetry_1))),AsAgain_1)) && event(ServerReissuesPending(h1((IDs[],ys_1)),AsAgain_1)) && event(DeviceInstallsPending(h1((IDs[],ys_1)),AsAgain_1)) && event(DeviceProofLogin(h1((IDs[],ys_1)),AsProof_1)) && event(ServerCommitsPending(h1((IDs[],ys_1)))).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+new T1: bitstring creating T1_2 at {1}
+
+new R0: bitstring creating R0_1 at {2}
+
+new L0: bitstring creating L0_1 at {3}
+
+new AsOld: bitstring creating AsOld_1 at {5}
+
+event DeviceOldRequest(T1_2,AsOld_1) at {6} (goal)
+
+out(c, (~M,~M_1,~M_2)) with ~M = AsOld_1, ~M_1 = xor(T1_2,h((AsOld_1,X))), ~M_2 = h((IDs,T1_2,AsOld_1,WT)) at {8}
+
+new AsRetry: bitstring creating AsRetry_1 at {9}
+
+event DeviceFreshRetry(T1_2,AsRetry_1) at {10} (goal)
+
+out(c, (~M_3,~M_4,~M_5)) with ~M_3 = AsRetry_1, ~M_4 = xor(T1_2,h((AsRetry_1,X))), ~M_5 = h((IDs,T1_2,AsRetry_1,WT)) at {12}
+
+in(c, (~M_3,~M_4,~M_5)) with ~M_3 = AsRetry_1, ~M_4 = xor(T1_2,h((AsRetry_1,X))), ~M_5 = h((IDs,T1_2,AsRetry_1,WT)) at {57}
+
+new AspRetry: bitstring creating AspRetry_2 at {62}
+
+event ServerAcceptsFreshRetry(T1_2,xor(T1_2,h((h((AsRetry_1,AspRetry_2,WT)),AspRetry_2))),AsRetry_1) at {68} (goal)
+
+out(c, (~M_6,~M_7,~M_8)) with ~M_6 = Normal, ~M_7 = AspRetry_2, ~M_8 = h((WT,IDsp,xor(T1_2,h((h((AsRetry_1,AspRetry_2,WT)),AspRetry_2))),AspRetry_2,h((IDs,IDsp,h((AsRetry_1,AspRetry_2,WT)))))) at {69}
+
+in(c, (Normal,~M_7,~M_8)) with ~M_7 = AspRetry_2, ~M_8 = h((WT,IDsp,xor(T1_2,h((h((AsRetry_1,AspRetry_2,WT)),AspRetry_2))),AspRetry_2,h((IDs,IDsp,h((AsRetry_1,AspRetry_2,WT)))))) at {13}
+
+event DeviceAcceptsFreshRetry(T1_2,xor(T1_2,h((h((AsRetry_1,AspRetry_2,WT)),AspRetry_2))),AsRetry_1) at {26} (goal)
+
+new AsNext: bitstring creating AsNext_2 at {27}
+
+event DeviceNextLogin(xor(T1_2,h((h((AsRetry_1,AspRetry_2,WT)),AspRetry_2))),AsNext_2) at {28} (goal)
+
+out(c, (~M_9,~M_10,~M_11)) with ~M_9 = AsNext_2, ~M_10 = xor(xor(T1_2,h((h((AsRetry_1,AspRetry_2,WT)),AspRetry_2))),h((AsNext_2,X))), ~M_11 = h((IDs,xor(T1_2,h((h((AsRetry_1,AspRetry_2,WT)),AspRetry_2))),AsNext_2,WT)) at {30}
+
+in(c, (~M,~M_1,~M_2)) with ~M = AsOld_1, ~M_1 = xor(T1_2,h((AsOld_1,X))), ~M_2 = h((IDs,T1_2,AsOld_1,WT)) at {70}
+
+new ys: bitstring creating ys_2 at {76}
+
+event ServerIssuesPendingForOld(h1((IDs,ys_2)),AsOld_1) at {78} (goal)
+
+out(c, (~M_12,~M_13,~M_14)) with ~M_12 = Resyn, ~M_13 = xor(h1((IDs,ys_2)),h((WT,X))), ~M_14 = h((IDsp,IDs,h1((IDs,ys_2)),WT,AsOld_1)) at {79}
+
+in(c, (Resyn,~M_13,a)) with ~M_13 = xor(h1((IDs,ys_2)),h((WT,X))) at {31}
+
+event DeviceRejectsStaleResponse(h1((IDs,ys_2)),AsOld_1,AsNext_2) at {37} (goal)
+
+new AsAgain: bitstring creating AsAgain_2 at {38}
+
+event DeviceRetriesAfterStale(xor(T1_2,h((h((AsRetry_1,AspRetry_2,WT)),AspRetry_2))),AsAgain_2) at {39} (goal)
+
+out(c, (~M_15,~M_16,~M_17)) with ~M_15 = AsAgain_2, ~M_16 = xor(xor(T1_2,h((h((AsRetry_1,AspRetry_2,WT)),AspRetry_2))),h((AsAgain_2,X))), ~M_17 = h((IDs,xor(T1_2,h((h((AsRetry_1,AspRetry_2,WT)),AspRetry_2))),AsAgain_2,WT)) at {41}
+
+in(c, (~M_9,~M_10,~M_11)) with ~M_9 = AsNext_2, ~M_10 = xor(xor(T1_2,h((h((AsRetry_1,AspRetry_2,WT)),AspRetry_2))),h((AsNext_2,X))), ~M_11 = h((IDs,xor(T1_2,h((h((AsRetry_1,AspRetry_2,WT)),AspRetry_2))),AsNext_2,WT)) at {80}
+
+new AspNext: bitstring creating AspNext_1 at {85}
+
+event ServerAcceptsCurrentAfterReplay(xor(T1_2,h((h((AsRetry_1,AspRetry_2,WT)),AspRetry_2))),AsNext_2) at {91} (goal)
+
+out(c, (~M_18,~M_19,~M_20)) with ~M_18 = Normal, ~M_19 = AspNext_1, ~M_20 = h((WT,IDsp,xor(xor(T1_2,h((h((AsRetry_1,AspRetry_2,WT)),AspRetry_2))),h((h((AsNext_2,AspNext_1,WT)),AspNext_1))),AspNext_1,h((IDs,IDsp,h((AsNext_2,AspNext_1,WT)))))) at {92}
+
+in(c, (~M_15,~M_16,~M_17)) with ~M_15 = AsAgain_2, ~M_16 = xor(xor(T1_2,h((h((AsRetry_1,AspRetry_2,WT)),AspRetry_2))),h((AsAgain_2,X))), ~M_17 = h((IDs,xor(T1_2,h((h((AsRetry_1,AspRetry_2,WT)),AspRetry_2))),AsAgain_2,WT)) at {93}
+
+event ServerReissuesPending(h1((IDs,ys_2)),AsAgain_2) at {98} (goal)
+
+out(c, (~M_21,~M_22,~M_23)) with ~M_21 = Resyn, ~M_22 = xor(h1((IDs,ys_2)),h((WT,X))), ~M_23 = h((IDsp,IDs,h1((IDs,ys_2)),WT,AsAgain_2)) at {99}
+
+in(c, (Resyn,~M_13,~M_23)) with ~M_13 = xor(h1((IDs,ys_2)),h((WT,X))), ~M_23 = h((IDsp,IDs,h1((IDs,ys_2)),WT,AsAgain_2)) at {42}
+
+event DeviceInstallsPending(h1((IDs,ys_2)),AsAgain_2) at {47} (goal)
+
+new AsProof: bitstring creating AsProof_2 at {48}
+
+event DeviceProofLogin(h1((IDs,ys_2)),AsProof_2) at {51} (goal)
+
+event DeviceSendsProof(AsProof_2,xor(h1((IDs,ys_2)),h((AsProof_2,X))),h((IDs,h1((IDs,ys_2)),AsProof_2,WT))) at {52}
+
+out(c, (~M_24,~M_25,~M_26)) with ~M_24 = AsProof_2, ~M_25 = xor(h1((IDs,ys_2)),h((AsProof_2,X))), ~M_26 = h((IDs,h1((IDs,ys_2)),AsProof_2,WT)) at {53}
+
+in(c, (~M_24,~M_25,~M_26)) with ~M_24 = AsProof_2, ~M_25 = xor(h1((IDs,ys_2)),h((AsProof_2,X))), ~M_26 = h((IDs,h1((IDs,ys_2)),AsProof_2,WT)) at {100}
+
+event ServerCommitsPending(h1((IDs,ys_2))) at {104} (goal)
+
+The event DeviceOldRequest(T1_2,AsOld_1) is executed at {6}.
+The event DeviceFreshRetry(T1_2,AsRetry_1) is executed at {10}.
+The event ServerAcceptsFreshRetry(T1_2,xor(T1_2,h((h((AsRetry_1,AspRetry_2,WT)),AspRetry_2))),AsRetry_1) is executed at {68}.
+The event DeviceAcceptsFreshRetry(T1_2,xor(T1_2,h((h((AsRetry_1,AspRetry_2,WT)),AspRetry_2))),AsRetry_1) is executed at {26}.
+The event ServerIssuesPendingForOld(h1((IDs,ys_2)),AsOld_1) is executed at {78}.
+The event DeviceNextLogin(xor(T1_2,h((h((AsRetry_1,AspRetry_2,WT)),AspRetry_2))),AsNext_2) is executed at {28}.
+The event ServerAcceptsCurrentAfterReplay(xor(T1_2,h((h((AsRetry_1,AspRetry_2,WT)),AspRetry_2))),AsNext_2) is executed at {91}.
+The event DeviceRejectsStaleResponse(h1((IDs,ys_2)),AsOld_1,AsNext_2) is executed at {37}.
+The event DeviceRetriesAfterStale(xor(T1_2,h((h((AsRetry_1,AspRetry_2,WT)),AspRetry_2))),AsAgain_2) is executed at {39}.
+The event ServerReissuesPending(h1((IDs,ys_2)),AsAgain_2) is executed at {98}.
+The event DeviceInstallsPending(h1((IDs,ys_2)),AsAgain_2) is executed at {47}.
+The event DeviceProofLogin(h1((IDs,ys_2)),AsProof_2) is executed at {51}.
+The event ServerCommitsPending(h1((IDs,ys_2))) is executed at {104}.
+A trace has been found.
+RESULT not (event(DeviceOldRequest(t1,asOld)) && event(DeviceFreshRetry(t1,asRetry)) && event(ServerAcceptsFreshRetry(t1,t2,asRetry)) && event(DeviceAcceptsFreshRetry(t1,t2,asRetry)) && event(ServerIssuesPendingForOld(p,asOld)) && event(DeviceNextLogin(t2,asNext)) && event(ServerAcceptsCurrentAfterReplay(t2,asNext)) && event(DeviceRejectsStaleResponse(p,asOld,asNext)) && event(DeviceRetriesAfterStale(t2,asAgain)) && event(ServerReissuesPending(p,asAgain)) && event(DeviceInstallsPending(p,asAgain)) && event(DeviceProofLogin(p,asProof)) && event(ServerCommitsPending(p)) && asOld ≠ asRetry) is false.
+-- Query not event(DeviceInstallsStaleCredential(t,a)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 144 rules (34 with conclusion selected). Queue: 30 rules.
+400 rules inserted. Base: 245 rules (41 with conclusion selected). Queue: 14 rules.
+Starting query not event(DeviceInstallsStaleCredential(t,a))
+RESULT not event(DeviceInstallsStaleCredential(t,a)) is true.
+-- Query not (event(DeviceProofLogin(p,a)) && event(DeviceSendsProof(a,etc,v1)) && event(ServerRejectsFinalLogin(a,etc,v1))) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 149 rules (34 with conclusion selected). Queue: 37 rules.
+400 rules inserted. Base: 241 rules (41 with conclusion selected). Queue: 46 rules.
+600 rules inserted. Base: 331 rules (43 with conclusion selected). Queue: 43 rules.
+800 rules inserted. Base: 401 rules (51 with conclusion selected). Queue: 28 rules.
+Starting query not (event(DeviceProofLogin(p,a)) && event(DeviceSendsProof(a,etc,v1)) && event(ServerRejectsFinalLogin(a,etc,v1)))
+RESULT not (event(DeviceProofLogin(p,a)) && event(DeviceSendsProof(a,etc,v1)) && event(ServerRejectsFinalLogin(a,etc,v1))) is true.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query not (event(DeviceOldRequest(t1,asOld)) && event(DeviceFreshRetry(t1,asRetry)) && event(ServerAcceptsFreshRetry(t1,t2,asRetry)) && event(DeviceAcceptsFreshRetry(t1,t2,asRetry)) && event(ServerIssuesPendingForOld(p,asOld)) && event(DeviceNextLogin(t2,asNext)) && event(ServerAcceptsCurrentAfterReplay(t2,asNext)) && event(DeviceRejectsStaleResponse(p,asOld,asNext)) && event(DeviceRetriesAfterStale(t2,asAgain)) && event(ServerReissuesPending(p,asAgain)) && event(DeviceInstallsPending(p,asAgain)) && event(DeviceProofLogin(p,asProof)) && event(ServerCommitsPending(p)) && asOld ≠ asRetry) is false.
+
+Query not event(DeviceInstallsStaleCredential(t,a)) is true.
+
+Query not (event(DeviceProofLogin(p,a)) && event(DeviceSendsProof(a,etc,v1)) && event(ServerRejectsFinalLogin(a,etc,v1))) is true.
+
+--------------------------------------------------------------
+

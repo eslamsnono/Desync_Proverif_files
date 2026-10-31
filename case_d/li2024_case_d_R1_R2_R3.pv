@@ -1,0 +1,185 @@
+(* Case (d) with the R1-R3 recovery rule, bounded ProVerif scenario.
+   Device sends an old request, then a fresh retry. The fresh retry succeeds.
+   The delayed old request arrives next and causes a pending recovery response.
+   The device is waiting on a newer request, so it rejects that stale response.
+   It retries with its current credential; the server reissues the pending
+   credential bound to the new request, and the server reaches commit.
+   The attacker controls delivery on public channel c. This is one scripted
+   scenario, not an unbounded proof, and persistent storage/crashes are absent. *)
+set preciseActions = true.
+free c: channel.
+fun h(bitstring): bitstring.
+fun h1(bitstring): bitstring.
+fun xor(bitstring, bitstring): bitstring.
+reduc forall m: bitstring, k: bitstring; unxor(xor(m,k),k) = m.
+free IDs, IDsp, Resyn, Normal, NoPending: bitstring.
+free WT: bitstring [private].
+free X: bitstring [private].
+
+event DeviceOldRequest(bitstring,bitstring).
+event DeviceFreshRetry(bitstring,bitstring).
+event ServerAcceptsFreshRetry(bitstring,bitstring,bitstring).
+event DeviceAcceptsFreshRetry(bitstring,bitstring,bitstring).
+event ServerIssuesPendingForOld(bitstring,bitstring).
+event DeviceRejectsStaleResponse(bitstring,bitstring,bitstring).
+event DeviceNextLogin(bitstring,bitstring).
+event ServerAcceptsCurrentAfterReplay(bitstring,bitstring).
+event DeviceRetriesAfterStale(bitstring,bitstring).
+event ServerReissuesPending(bitstring,bitstring).
+event DeviceInstallsPending(bitstring,bitstring).
+event DeviceProofLogin(bitstring,bitstring).
+event ServerCommitsPending(bitstring).
+event ServerRejectsFinalLogin(bitstring,bitstring,bitstring).
+event DeviceSendsProof(bitstring,bitstring,bitstring).
+event DeviceInstallsStaleCredential(bitstring,bitstring).
+
+(* The main query asks for the full expected repaired path. *)
+query t1:bitstring,t2:bitstring,p:bitstring,
+       asOld:bitstring,asRetry:bitstring,asNext:bitstring,
+       asAgain:bitstring,asProof:bitstring;
+  event(DeviceOldRequest(t1,asOld)) &&
+  event(DeviceFreshRetry(t1,asRetry)) && asOld <> asRetry &&
+  event(ServerAcceptsFreshRetry(t1,t2,asRetry)) &&
+  event(DeviceAcceptsFreshRetry(t1,t2,asRetry)) &&
+  event(ServerIssuesPendingForOld(p,asOld)) &&
+  event(DeviceNextLogin(t2,asNext)) &&
+  event(ServerAcceptsCurrentAfterReplay(t2,asNext)) &&
+  event(DeviceRejectsStaleResponse(p,asOld,asNext)) &&
+  event(DeviceRetriesAfterStale(t2,asAgain)) &&
+  event(ServerReissuesPending(p,asAgain)) &&
+  event(DeviceInstallsPending(p,asAgain)) &&
+  event(DeviceProofLogin(p,asProof)) &&
+  event(ServerCommitsPending(p)).
+(* The stale response must not be installed against a different request. *)
+query t:bitstring, a:bitstring; event(DeviceInstallsStaleCredential(t,a)).
+(* The final honest proof login must not be refused. *)
+query p:bitstring, a:bitstring, etc:bitstring, v1:bitstring;
+  event(DeviceProofLogin(p,a)) && event(DeviceSendsProof(a,etc,v1)) &&
+  event(ServerRejectsFinalLogin(a,etc,v1)).
+
+letfun mkA1(TC:bitstring,As:bitstring) =
+  (As,xor(TC,h((As,X))),h((IDs,TC,As,WT))).
+letfun mkNormal(TC:bitstring,As:bitstring,Asp:bitstring) =
+  let SK = h((As,Asp,WT)) in
+  let SSK = h((IDs,IDsp,SK)) in
+  let TCn = xor(TC,h((SK,Asp))) in
+  (TCn,(Normal,Asp,h((WT,IDsp,TCn,Asp,SSK)))).
+letfun acceptNormal(TC:bitstring,As:bitstring,m:bitstring) =
+  let (Tag:bitstring,Asp:bitstring,Vsp:bitstring) = m in
+  if Tag = Normal then
+    let SK = h((As,Asp,WT)) in
+    let SSK = h((IDs,IDsp,SK)) in
+    let TCn = xor(TC,h((SK,Asp))) in
+    if Vsp = h((WT,IDsp,TCn,Asp,SSK)) then TCn else TC
+  else TC.
+letfun mkSR(P:bitstring,As:bitstring) =
+  (Resyn,xor(P,h((WT,X))),h((IDsp,IDs,P,WT,As))).
+
+let Sensor(T1:bitstring) =
+  new AsOld:bitstring;
+  event DeviceOldRequest(T1,AsOld);
+  out(c,mkA1(T1,AsOld));
+  new AsRetry:bitstring;
+  event DeviceFreshRetry(T1,AsRetry);
+  out(c,mkA1(T1,AsRetry));
+  in(c,ReplyRetry:bitstring);
+  let T2 = acceptNormal(T1,AsRetry,ReplyRetry) in
+  if T2 <> T1 then
+    event DeviceAcceptsFreshRetry(T1,T2,AsRetry);
+    new AsNext:bitstring;
+    event DeviceNextLogin(T2,AsNext);
+    out(c,mkA1(T2,AsNext));
+    in(c,StaleResponse:bitstring);
+    let (TagOld:bitstring,MTC_Old:bitstring,MV_Old:bitstring) = StaleResponse in
+    if TagOld = Resyn then
+      let CandOld = unxor(MTC_Old,h((WT,X))) in
+      if MV_Old = h((IDsp,IDs,CandOld,WT,AsNext)) then
+        event DeviceInstallsStaleCredential(CandOld,AsNext)
+      else
+        event DeviceRejectsStaleResponse(CandOld,AsOld,AsNext);
+    new AsAgain:bitstring;
+    event DeviceRetriesAfterStale(T2,AsAgain);
+    out(c,mkA1(T2,AsAgain));
+    in(c,RetryResponse:bitstring);
+    let (TagAgain:bitstring,MTC_Again:bitstring,MV_Again:bitstring) = RetryResponse in
+    if TagAgain = Resyn then
+      let PendDevice = unxor(MTC_Again,h((WT,X))) in
+      if MV_Again = h((IDsp,IDs,PendDevice,WT,AsAgain)) then
+        (event DeviceInstallsPending(PendDevice,AsAgain);
+         new AsProof:bitstring;
+         let ETCProof = xor(PendDevice,h((AsProof,X))) in
+         let VProof = h((IDs,PendDevice,AsProof,WT)) in
+         event DeviceProofLogin(PendDevice,AsProof);
+         event DeviceSendsProof(AsProof,ETCProof,VProof);
+         out(c,(AsProof,ETCProof,VProof)))
+      else 0
+    else 0
+  else 0.
+
+let Server(TC0:bitstring,Pr0:bitstring,Last0:bitstring) =
+  (* First delivered login is the fresh retry; attacker has held AsOld. *)
+  in(c,(AsRetry_S:bitstring,ETCRetry:bitstring,V1Retry:bitstring));
+  let DRetry = unxor(ETCRetry,h((AsRetry_S,X))) in
+  if DRetry = TC0 then
+    if V1Retry = h((IDs,TC0,AsRetry_S,WT)) then
+      if AsRetry_S <> Last0 then
+        new AspRetry:bitstring;
+        let (T2:bitstring,ReplyRetry:bitstring) = mkNormal(TC0,AsRetry_S,AspRetry) in
+        event ServerAcceptsFreshRetry(TC0,T2,AsRetry_S);
+        out(c,ReplyRetry);
+        in(c,(AsOld_S:bitstring,ETCOld:bitstring,V1Old:bitstring));
+        let DOld = unxor(ETCOld,h((AsOld_S,X))) in
+        if DOld = TC0 then
+          if V1Old = h((IDs,TC0,AsOld_S,WT)) then
+            if AsOld_S <> AsRetry_S then
+              if V1Old <> V1Retry then
+                new ys:bitstring;
+                let P = h1((IDs,ys)) in
+                event ServerIssuesPendingForOld(P,AsOld_S);
+                out(c,mkSR(P,AsOld_S));
+                in(c,(AsNext_S:bitstring,ETCNext:bitstring,V1Next:bitstring));
+                let DNext = unxor(ETCNext,h((AsNext_S,X))) in
+                if DNext = T2 then
+                  if V1Next = h((IDs,T2,AsNext_S,WT)) then
+                    if AsNext_S <> AsOld_S then
+                      new AspNext:bitstring;
+                      let (T3:bitstring,ReplyNext:bitstring) = mkNormal(T2,AsNext_S,AspNext) in
+                      event ServerAcceptsCurrentAfterReplay(T2,AsNext_S);
+                      out(c,ReplyNext);
+                      in(c,(AsAgain_S:bitstring,ETCAgain:bitstring,V1Again:bitstring));
+                      let DAgain = unxor(ETCAgain,h((AsAgain_S,X))) in
+                      if DAgain = T2 then
+                        if V1Again = h((IDs,T2,AsAgain_S,WT)) then
+                          if AsAgain_S <> AsNext_S then
+                            event ServerReissuesPending(P,AsAgain_S);
+                            out(c,mkSR(P,AsAgain_S));
+                            in(c,(AsProof_S:bitstring,ETCProof:bitstring,V1Proof:bitstring));
+                            let DProof = unxor(ETCProof,h((AsProof_S,X))) in
+                            if DProof = P then
+                              if V1Proof = h((IDs,P,AsProof_S,WT)) then
+                                event ServerCommitsPending(P)
+                              else event ServerRejectsFinalLogin(AsProof_S,ETCProof,V1Proof)
+                            else event ServerRejectsFinalLogin(AsProof_S,ETCProof,V1Proof)
+                          else 0
+                        else 0
+                      else 0
+                    else 0
+                  else 0
+                else 0
+              else 0
+            else 0
+          else 0
+        else 0
+      else 0
+    else 0
+  else 0.
+
+process
+  new T1:bitstring;
+  new R0:bitstring;
+  new L0:bitstring;
+  (Sensor(T1) | Server(T1,R0,L0))
+
+
+
+
